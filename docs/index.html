@@ -9,20 +9,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
 
   <!-- jsPsych 相关脚本 -->
-<script src="https://cdn.jsdelivr.net/gh/jspsych/jspsych@jspsych@7.0.0/examples/js/webgazer/webgazer.js"></script>
-<script src="https://unpkg.com/jspsych@8.0.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-preload@2.0.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.0.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.0.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-audio-keyboard-response@2.0.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-webgazer-init-camera@2.0.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-webgazer-calibrate@2.0.0"></script>
-<script src="https://unpkg.com/@jspsych/plugin-webgazer-validate@2.0.0"></script>
-<script src="https://unpkg.com/@jspsych/extension-webgazer@1.0.3"></script>
+  <script src="https://cdn.jsdelivr.net/gh/jspsych/jspsych@jspsych@7.0.0/examples/js/webgazer/webgazer.js"></script>
+  <script src="https://unpkg.com/jspsych@8.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-preload@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-audio-keyboard-response@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-webgazer-init-camera@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-webgazer-calibrate@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-webgazer-validate@2.0.0"></script>
+  <script src="https://unpkg.com/@jspsych/extension-webgazer@1.0.3"></script>
 
   <style>
-    /* 全局样式 */
+    /* ==== 全局样式 ==== */
     * {
       margin: 0;
       padding: 0;
@@ -36,7 +36,7 @@
       overflow: hidden;
     }
 
-    /* 顶部导航栏 */
+    /* ==== 顶部导航栏 ==== */
     .header {
       width: 100%;
       background: linear-gradient(90deg, #2c3e50, #4b6082);
@@ -56,7 +56,7 @@
       letter-spacing: 1px;
     }
 
-    /* 内容容器 */
+    /* ==== 内容容器 ==== */
     #jspsych-target {
       position: absolute;
       top: 70px;
@@ -85,7 +85,7 @@
       max-height: 100%;
     }
 
-    /* 食物展示区 - 2x2网格 */
+    /* ==== 食物展示区 - 2x2网格 ==== */
     .food-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -120,7 +120,7 @@
       display: block;
     }
 
-    /* 中央固定十字 */
+    /* ==== 中央固定十字 ==== */
     .central-fixation {
       position: absolute;
       top: 50%;
@@ -134,7 +134,7 @@
       display: none;
     }
 
-    /* 眼动追踪注视点 - 已禁用显示 */
+    /* ==== 眼动追踪注视点（已禁用） ==== */
     .gaze-point {
       position: absolute;
       width: 10px;
@@ -146,7 +146,7 @@
       display: none;
     }
 
-    /* 音乐指示条 */
+    /* ==== 音乐指示条 ==== */
     .music-indicator {
       position: fixed;
       top: 90px;
@@ -162,7 +162,7 @@
       z-index: 1001;
     }
 
-    /* 按钮样式 */
+    /* ==== 按钮样式 ==== */
     button {
       background: linear-gradient(90deg, #2980b9, #3498db);
       border: none;
@@ -189,27 +189,20 @@
       margin-top: 20px;
     }
 
-    /* 居中文字模块 */
+    /* ==== 居中文字模块 ==== */
     .centered-text {
       text-align: center;
       padding: 20px 30px;
       color: #444;
       line-height: 1.6;
+      max-width: 800px;
     }
     .centered-text p {
       font-size: 1.5rem;
       margin-bottom: 1rem;
     }
 
-    /* 结束页面下载按钮区 */
-    .footer-buttons {
-      margin-top: 20px;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-    }
-
-    /* 页脚 */
+    /* ==== 页脚 ==== */
     .footer {
       position: fixed;
       bottom: 10px;
@@ -218,6 +211,269 @@
       color: #888;
       font-size: 0.9rem;
       letter-spacing: 0.5px;
+    }
+
+    /* ==== 登录表单样式 ==== */
+    .login-container {
+      width: 700px;
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      margin: 0 auto;
+    }
+    .login-container h2 {
+      color: #2c3e50;
+      margin-bottom: 25px;
+      font-weight: 500;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #555;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+    .login-button {
+      background: linear-gradient(90deg, #2980b9, #3498db);
+      border: none;
+      color: #fff;
+      padding: 14px 36px;
+      text-align: center;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .login-button:hover {
+      background: linear-gradient(90deg, #2572a5, #2c82c2);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 新增：实验天数显示样式 */
+    .day-display {
+      background: #f0f7ff;
+      border-radius: 12px;
+      padding: 15px;
+      margin: 20px 0;
+      border: 2px solid #d0e4ff;
+      font-size: 1.3rem;
+      font-weight: 500;
+    }
+    .day-display span {
+      color: #2980b9;
+      font-weight: 600;
+    }
+
+    /* ==== 数据报告样式 ==== */
+    .data-report {
+      max-width: 800px;
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+      text-align: left;
+      font-family: 'Courier New', monospace;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .data-report h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+      font-weight: 500;
+    }
+    .data-report pre {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .copy-button {
+      background: linear-gradient(90deg, #27ae60, #2ecc71);
+      border: none;
+      color: #fff;
+      padding: 12px 28px;
+      text-align: center;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .copy-button:hover {
+      background: linear-gradient(90deg, #219653, #27ad60);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+    .github-button {
+      background: linear-gradient(90deg, #24292e, #2d3338);
+      border: none;
+      color: #fff;
+      padding: 12px 28px;
+      text-align: center;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .github-button:hover {
+      background: linear-gradient(90deg, #1a1e21, #22272b);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    /* 退出按钮 */
+    .exit-button {
+      background: linear-gradient(90deg, #e74c3c, #c0392b);
+      border: none;
+      color: #fff;
+      padding: 12px 28px;
+      text-align: center;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .exit-button:hover {
+      background: linear-gradient(90deg, #c0392b, #a93226);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ==== 状态消息 ==== */
+    .status-message {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 500;
+    }
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .status-loading {
+      background: #cce5ff;
+      color: #004085;
+      border: 1px solid #b8daff;
+    }
+
+    /* ==== 调试信息（已隐藏）==== */
+    .debug-info {
+      display: none;
+      position: fixed;
+      bottom: 40px;
+      left: 20px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      z-index: 2000;
+    }
+
+    /* 验证码弹窗 */
+    .auth-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 3000;
+      justify-content: center;
+      align-items: center;
+    }
+    .auth-content {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+    }
+    .auth-content h3 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .auth-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .auth-button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+    .auth-confirm {
+      background: #27ae60;
+      color: white;
+    }
+    .auth-confirm:hover {
+      background: #219653;
+    }
+    .auth-cancel {
+      background: #e74c3c;
+      color: white;
+    }
+    .auth-cancel:hover {
+      background: #c0392b;
+    }
+    .auth-error {
+      color: #e74c3c;
+      margin-top: 10px;
+      display: none;
     }
   </style>
 </head>
@@ -237,6 +493,19 @@
   <!-- 眼动追踪注视点（已禁用） -->
   <div id="gaze-point" class="gaze-point"></div>
 
+  <!-- 验证码弹窗 -->
+  <div class="auth-modal" id="auth-modal">
+    <div class="auth-content">
+      <h3>请输入验证码以查看GitHub记录</h3>
+      <input type="text" class="auth-input" id="auth-code" placeholder="输入验证码" />
+      <div class="auth-error" id="auth-error">验证码错误，无权限查看</div>
+      <div class="auth-buttons">
+        <button class="auth-button auth-cancel" id="auth-cancel">返回</button>
+        <button class="auth-button auth-confirm" id="auth-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
   <!-- jsPsych 渲染目标容器 -->
   <div id="jspsych-target"></div>
 
@@ -244,12 +513,29 @@
   <div class="footer">2025 北京师范大学 Eye—ED 项目组联合出品。</div>
 
   <script>
+    /* ==== 用户信息存储 ==== */
+    let userInfo = null;
+
+    /* ==== GitHub配置 ==== */
+    const GITHUB_CONFIG = {
+      owner: "Enqiliu66",
+      repo: "eyeed",
+      token: "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",
+      issuePrefix: "EYE-"  // 修改前缀格式
+    };
+
     /* 初始化 jsPsych */
     const jsPsych = initJsPsych({
       display_element: 'jspsych-target',
       extensions: [
         { type: jsPsychExtensionWebgazer }
-      ]
+      ],
+      on_finish: function() {
+        // 实验结束时停止音乐
+        if (window.globalAudio && !window.globalAudio.paused) {
+          window.globalAudio.pause();
+        }
+      }
     });
 
     /* 生成图片列表 - 20张图片（001-020） */
@@ -273,6 +559,388 @@
     window.globalAudio = new Audio(musicFiles[0]);
     window.globalAudio.loop = true;
 
+    /* ==== 用户登录页面 ==== */
+    const loginScreen = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: function() {
+        // 获取当前被试的天数信息
+        let dayInfo = "";
+        const subjectIdEl = document.getElementById('subject-id');
+        if (subjectIdEl && subjectIdEl.value) {
+          const subjectId = subjectIdEl.value;
+          const storedDay = localStorage.getItem(`day_${subjectId}`);
+          const currentDay = storedDay ? parseInt(storedDay) + 1 : 1;
+          dayInfo = `<div class="day-display">这是您的第 <span>${currentDay}</span> 天实验</div>`;
+        }
+
+        return `
+          <div class="login-container">
+            <h2>实验用户登录</h2>
+            <div class="form-group">
+              <label for="subject-id">被试ID</label>
+              <select id="subject-id">
+                <option value="">请选择被试ID</option>
+                ${Array.from({length: 21}, (_, i) =>
+                  `<option value="EYE-${(i+1).toString().padStart(3, '0')}">EYE-${(i+1).toString().padStart(3, '0')}</option>`
+                ).join('')}
+              </select>
+            </div>
+            ${dayInfo}
+            <div class="form-group">
+              <label for="gender">性别</label>
+              <select id="gender">
+                <option value="">请选择性别</option>
+                <option value="男">男</option>
+                <option value="女">女</option>
+                <option value="其他">其他</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="age">年龄</label>
+              <input type="number" id="age" min="18" max="60" placeholder="请输入年龄">
+            </div>
+            <button class="login-button" id="login-btn">开始实验</button>
+            <div id="login-status" style="margin-top: 15px;"></div>
+          </div>
+        `;
+      },
+      choices: [],
+      on_load: function() {
+        // 监听被试ID变化，更新天数显示并自动填充用户信息
+        document.getElementById('subject-id').addEventListener('change', function() {
+          const subjectId = this.value;
+          if (subjectId) {
+            const storedDay = localStorage.getItem(`day_${subjectId}`);
+            const currentDay = storedDay ? parseInt(storedDay) + 1 : 1;
+
+            // 创建或更新天数显示
+            let dayDisplay = document.querySelector('.day-display');
+            if (!dayDisplay) {
+              dayDisplay = document.createElement('div');
+              dayDisplay.className = 'day-display';
+              document.querySelector('.login-container').insertBefore(dayDisplay, document.querySelector('.form-group:last-child'));
+            }
+            dayDisplay.innerHTML = `这是您的第 <span>${currentDay}</span> 天实验`;
+
+            // 尝试获取存储的用户信息并自动填充
+            const userData = localStorage.getItem(`user_${subjectId}`);
+            if (userData) {
+              try {
+                const { gender, age } = JSON.parse(userData);
+                document.getElementById('gender').value = gender;
+                document.getElementById('age').value = age;
+              } catch (e) {
+                console.error('解析用户信息失败', e);
+              }
+            }
+          }
+        });
+
+        document.getElementById('login-btn').addEventListener('click', function() {
+          const subjectId = document.getElementById('subject-id').value;
+          const gender = document.getElementById('gender').value;
+          const age = document.getElementById('age').value;
+          const statusEl = document.getElementById('login-status');
+
+          if (!subjectId) {
+            statusEl.innerHTML = '<p style="color: #e74c3c;">请选择被试ID</p>';
+            return;
+          }
+          if (!gender) {
+            statusEl.innerHTML = '<p style="color: #e74c3c;">请选择性别</p>';
+            return;
+          }
+          if (!age) {
+            statusEl.innerHTML = '<p style="color: #e74c3c;">请输入年龄</p>';
+            return;
+          }
+
+          // 从localStorage获取当前天数
+          const storedDay = localStorage.getItem(`day_${subjectId}`);
+          const day = storedDay ? parseInt(storedDay) + 1 : 1;
+
+          // 保存用户信息
+          userInfo = {
+            subjectId,
+            day,
+            gender,
+            age: parseInt(age)
+          };
+
+          // 存储用户信息（性别和年龄）
+          localStorage.setItem(`user_${subjectId}`, JSON.stringify({ gender, age }));
+
+          // 显示成功信息
+          statusEl.innerHTML = '<p style="color: #27ae60;">验证通过，正在进入实验...</p>';
+
+          // 继续实验流程
+          setTimeout(() => {
+            jsPsych.finishTrial();
+          }, 1000);
+        });
+      }
+    };
+
+    /* ==== GitHub API 功能 ==== */
+
+    // 创建或获取Issue（每个被试只创建一个）
+    async function getOrCreateIssue() {
+      // 修改Issue标题：仅使用被试ID
+      const issueTitle = `${userInfo.subjectId}`;
+
+      try {
+        // 1. 检查Issue是否已存在 - 使用精确匹配标题搜索
+        // 最多重试3次
+        for (let retry = 0; retry < 3; retry++) {
+          try {
+            // 修复查询参数格式问题 - 添加 is:issue 参数
+            const query = `repo:${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo} is:issue in:title "${issueTitle}"`;
+            const encodedQuery = encodeURIComponent(query);
+            const searchUrl = `https://api.github.com/search/issues?q=${encodedQuery}`;
+
+            const searchResponse = await fetch(searchUrl, {
+              headers: {
+                'Authorization': `token ${GITHUB_CONFIG.token}`,
+                'Accept': 'application/vnd.github.v3+json'
+              }
+            });
+
+            if (!searchResponse.ok) {
+              const errorData = await searchResponse.json();
+              console.error('GitHub API错误详情:', errorData);
+              throw new Error(`GitHub API返回错误: ${searchResponse.status}`);
+            }
+
+            const searchData = await searchResponse.json();
+
+            // 检查是否找到匹配的Issue - 精确匹配标题
+            if (searchData.items && searchData.items.length > 0) {
+              // 筛选出标题完全匹配的Issue
+              const exactMatch = searchData.items.find(item => item.title.trim() === issueTitle);
+              if (exactMatch) {
+                return exactMatch;
+              }
+            }
+
+            // 等待2秒后重试（解决搜索延迟问题）
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          } catch (error) {
+            console.error(`搜索Issue失败（重试 ${retry+1}/3）:`, error);
+            if (retry === 2) {
+              throw error;
+            }
+          }
+        }
+
+        // 2. 创建新Issue
+        const createUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/issues`;
+        const createResponse = await fetch(createUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `token ${GITHUB_CONFIG.token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: issueTitle,
+            body: `性别：${userInfo.gender}\n年龄：${userInfo.age}岁`
+          })
+        });
+
+        if (!createResponse.ok) {
+          const errorData = await createResponse.json();
+          console.error('创建Issue错误详情:', errorData);
+          throw new Error(`创建Issue失败: ${createResponse.status}`);
+        }
+
+        const createData = await createResponse.json();
+        return createData;
+      } catch (error) {
+        console.error('GitHub Issue操作失败:', error);
+        throw error;
+      }
+    }
+
+    // 添加单条Issue评论
+    async function addIssueComment(issueNumber, commentBody) {
+      const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/issues/${issueNumber}/comments`;
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `token ${GITHUB_CONFIG.token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            body: commentBody
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('添加评论错误详情:', errorData);
+          throw new Error(`GitHub API返回错误: ${response.status}`);
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('添加评论失败:', error);
+        throw error;
+      }
+    }
+
+    // 上传CSV文件到GitHub仓库
+    async function uploadCSVToGitHub(csvContent, fileName) {
+      const MAX_FILE_SIZE = 700 * 1024; // 700KB
+      const encoder = new TextEncoder();
+      const csvData = encoder.encode(csvContent);
+      const totalSize = csvData.length;
+
+      // 如果文件小于最大限制，直接上传
+      if (totalSize <= MAX_FILE_SIZE) {
+        return uploadFilePart(csvContent, fileName);
+      }
+
+      // 分割文件
+      let uploadPromises = [];
+      let partIndex = 1;
+      let startIndex = 0;
+
+      while (startIndex < totalSize) {
+        // 计算结束位置（尝试在换行符处分割）
+        let endIndex = Math.min(startIndex + MAX_FILE_SIZE, totalSize);
+
+        // 查找最近的换行符
+        while (endIndex < totalSize && csvData[endIndex] !== 10) { // 10是换行符的ASCII
+          endIndex++;
+        }
+
+        // 如果找不到换行符，使用最大位置
+        if (endIndex >= totalSize) {
+          endIndex = totalSize;
+        }
+
+        // 提取当前部分
+        const partData = csvData.slice(startIndex, endIndex);
+        const partContent = new TextDecoder().decode(partData);
+
+        // 生成文件名（添加分块编号）
+        const partFileName = fileName.replace('.csv', `_part${partIndex}.csv`);
+
+        // 上传分块
+        uploadPromises.push(uploadFilePart(partContent, partFileName));
+
+        // 移动到下一部分
+        startIndex = endIndex;
+        partIndex++;
+      }
+
+      // 等待所有上传完成
+      return Promise.all(uploadPromises);
+    }
+
+    // 上传单个文件分块到GitHub
+    async function uploadFilePart(content, fileName) {
+      const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/data/${fileName}`;
+
+      // 获取文件SHA（如果存在）
+      let sha = null;
+      try {
+        const getResponse = await fetch(url, {
+          headers: {
+            'Authorization': `token ${GITHUB_CONFIG.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (getResponse.ok) {
+          const fileData = await getResponse.json();
+          sha = fileData.sha;
+        }
+      } catch (e) {
+        // 文件不存在，忽略错误
+      }
+
+      // 创建或更新文件
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${GITHUB_CONFIG.token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `添加眼动数据: ${fileName}`,
+          content: btoa(unescape(encodeURIComponent(content))),
+          sha: sha // 更新时使用SHA
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`文件上传失败: ${errorData.message || response.status}`);
+      }
+
+      return response.json();
+    }
+
+    // 生成GitHub评论内容（只包含数据点个数和实验时间）
+    function generateGitHubComment(gazeData) {
+      // 计算数据点总数
+      const dataPoints = gazeData.reduce((acc, trial) => acc + trial.length, 0);
+
+      // 获取当前日期时间
+      const now = new Date();
+      const dateTime = `${now.getFullYear()}年${(now.getMonth()+1).toString().padStart(2, '0')}月${now.getDate().toString().padStart(2, '0')}日 ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+
+      return `## DAY-${userInfo.day} 实验数据\n\n` +
+             `- **实验日期时间**: ${dateTime}\n` +
+             `- **眼动数据点总数**: ${dataPoints}\n`;
+    }
+
+    // 生成CSV格式的眼动数据
+    function generateCSVData(gazeData) {
+      let csvContent = "trial,timestamp,x,y,duration\n";
+
+      gazeData.forEach((trialData, trialIndex) => {
+        trialData.forEach(point => {
+          csvContent += `${trialIndex + 1},${point.timestamp},${point.x},${point.y},${point.duration}\n`;
+        });
+      });
+
+      return csvContent;
+    }
+
+    /* ==== 实验流程 ==== */
+
+    const timeline = [];
+
+    // 添加登录页面
+    timeline.push(loginScreen);
+
+    // 显示欢迎信息
+    timeline.push({
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: function() {
+        if (!userInfo) {
+          return `
+            <div class="centered-text">
+              <p>欢迎参与实验</p>
+              <p>按任意键继续</p>
+            </div>
+          `;
+        }
+        return `
+          <div class="centered-text">
+            <p>欢迎您参与第 ${userInfo.day} 天的实验</p>
+            <p>按任意键继续</p>
+          </div>
+        `;
+      }
+    });
+
     /* 预加载资源 */
     const imagesToPreload = [...lowCalorieImages, ...highCalorieImages];
     const audioToPreload = musicFiles;
@@ -282,8 +950,6 @@
       audio: audioToPreload,
       message: '<div class="centered-text"><p>正在加载资源，请稍候…</p></div>'
     };
-
-    const timeline = [];
     timeline.push(preload);
 
     /* ==== 校准相关的各个步骤 ==== */
@@ -398,30 +1064,33 @@
 
     const instructions = {
       type: jsPsychHtmlKeyboardResponse,
-      stimulus: `
-        <div class="centered-text">
-          <p>在实验中，屏幕上将呈现4张食物图片，包含2张低热量和2张高热量食物。</p>
-          <p>当您注视低热量食物时，将播放愉悦的音乐。</p>
-          <p>当您注视高热量食物时，音乐将停止播放。</p>
-          <p>实验共有 30 个试次，每个试次持续 8 秒，试次间休息 2 秒。</p>
-          <p>请按任意键开始实验。</p>
-        </div>
-      `,
+      stimulus: function() {
+        return `
+          <div class="centered-text">
+            <p>在实验中，屏幕上将呈现4张食物图片，包含2张低热量和2张高热量食物。</p>
+            <p>当您注视低热量食物时，将播放愉悦的音乐。</p>
+            <p>当您注视高热量食物时，音乐将停止播放。</p>
+            <p>实验共有 30 个试次，每个试次持续 8 秒，试次间休息 2 秒。</p>
+            <p>请按任意键开始实验。</p>
+          </div>
+        `;
+      },
       post_trial_gap: 2000
     };
     timeline.push(instructions);
 
     /* ==== 构建 30 个试次 ==== */
-    const trial_count = 30;  // 30个试次
+    const trial_count = 30; // 30个试次
     const trials = [];
     const centralFixation = document.getElementById('central-fixation');
     const gazePoint = document.getElementById('gaze-point');
     let gazeUpdateInterval;
 
-    // 取消红色注视点显示，移除更新注视点的函数
+    // 存储眼动数据
+    const gazeData = [];
+
     function startGazeTracking() {
       if (gazeUpdateInterval) clearInterval(gazeUpdateInterval);
-      // 不显示注视点，所以不启动更新定时器
     }
 
     function stopGazeTracking() {
@@ -433,11 +1102,9 @@
     }
 
     for (let i = 0; i < trial_count; i++) {
-      // 固定每个试次为2张低热量和2张高热量图片
       const lowCount = 2;
       const highCount = 2;
 
-      // 随机选择图片
       const lowImageIdxs = jsPsych.randomization.sampleWithoutReplacement(
         Array.from({length: lowCalorieImages.length}, (_, k) => k),
         lowCount
@@ -450,12 +1117,14 @@
       const lowImages = lowImageIdxs.map(idx => lowCalorieImages[idx]);
       const highImages = highImageIdxs.map(idx => highCalorieImages[idx]);
 
-      // 合并并随机排序图片
       let allImages = [
         ...lowImages.map(src => ({src, type: 'low'})),
         ...highImages.map(src => ({src, type: 'high'}))
       ];
       allImages = jsPsych.randomization.shuffle(allImages);
+
+      // 为当前试次初始化眼动数据存储
+      gazeData[i] = [];
 
       // 注视点试次
       trials.push({
@@ -463,22 +1132,23 @@
         stimulus: '',
         choices: "NO_KEYS",
         trial_duration: jsPsych.randomization.sampleWithoutReplacement([800, 1000, 1200], 1)[0],
-        data: { task: 'fixation', trial_index: i + 1 },
+        data: {
+          task: 'fixation',
+          trial_index: i + 1,
+          day: userInfo ? userInfo.day : 1
+        },
         on_start: function() {
-          // 显示中央固定十字
           centralFixation.style.display = 'block';
         },
         on_finish: function() {
-          // 隐藏中央固定十字
           centralFixation.style.display = 'none';
         }
       });
 
-      // 图片展示试次 - 2x2网格
+      // 图片展示试次
       const trial = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: function() {
-          // 生成4张图片的HTML
           let imagesHtml = '';
           allImages.forEach((img, index) => {
             imagesHtml += `
@@ -494,11 +1164,13 @@
             </div>
           `;
         },
-        trial_duration: 8000,  // 8秒
+        trial_duration: 8000,
         choices: "NO_KEYS",
         data: {
           task: 'test',
           trial_index: i + 1,
+          day: userInfo ? userInfo.day : 1,
+          subjectId: userInfo ? userInfo.subjectId : "UNKNOWN",
           low_images: lowImages,
           high_images: highImages,
           image_layout: allImages.map(img => img.type)
@@ -511,7 +1183,6 @@
         ],
         on_start: function(trial) {
           const lowSelectors = [];
-          // 获取所有低热量食物的选择器
           for (let j = 0; j < 4; j++) {
             if (allImages[j].type === 'low') {
               lowSelectors.push(`#food-${j}`);
@@ -521,21 +1192,42 @@
           const musicIndicator = document.getElementById('music-indicator');
           const audio = window.globalAudio;
 
+          // 记录试次开始时间
+          const trialStartTime = Date.now();
+
           let isGazingLow = false;
           let pauseTimeout = null;
+          let lastPosition = null;
+          let lastTimestamp = null;
 
-          // 开始追踪注视点（不显示红色点）
           startGazeTracking();
 
-          // 音乐控制回调
           const webgazerCallback = function() {
             if (typeof webgazer === 'undefined') return;
 
             webgazer.getCurrentPrediction().then(function(pred) {
               if (!pred) return;
               const x = pred.x, y = pred.y;
+              const currentTimestamp = Date.now();
 
-              // 检查是否注视任何低热量食物
+              // 计算持续时间（如果这是连续点）
+              let duration = 0;
+              if (lastTimestamp) {
+                duration = currentTimestamp - lastTimestamp;
+              }
+
+              // 记录眼动数据（移除事件类型）
+              const timestamp = currentTimestamp - trialStartTime;
+              gazeData[i].push({
+                x,
+                y,
+                timestamp,
+                duration
+              });
+
+              lastPosition = {x, y};
+              lastTimestamp = currentTimestamp;
+
               let inLow = false;
               lowSelectors.forEach(selector => {
                 const lowEl = document.querySelector(selector);
@@ -577,7 +1269,8 @@
             }).catch(e => console.log('获取眼动预测失败:', e));
           };
 
-          trial.interval = setInterval(webgazerCallback, 200);
+          // 修改为30Hz采样频率（每33毫秒采样一次）
+          trial.interval = setInterval(webgazerCallback, 33);
         },
         on_finish: function() {
           if (this.interval) {
@@ -589,42 +1282,195 @@
 
       trials.push(trial);
 
-      // 试次间休息2秒
+      // 试次间休息
       if (i < trial_count - 1) {
         trials.push({
           type: jsPsychHtmlKeyboardResponse,
           stimulus: '',
           choices: "NO_KEYS",
-          trial_duration: 2000,  // 休息2秒
-          data: { task: 'rest', trial_index: i + 1 }
+          trial_duration: 2000,
+          data: {
+            task: 'rest',
+            trial_index: i + 1,
+            day: userInfo ? userInfo.day : 1
+          }
         });
       }
     }
 
-    // 将所有 trials 按顺序插入 timeline
     timeline.push({
       timeline: trials,
       randomize_order: false
     });
 
+    /* ==== 数据处理和GitHub上传 ==== */
+    const dataProcessingTrial = {
+      type: jsPsychHtmlButtonResponse,
+      stimulus: function() {
+        return `
+          <div class="centered-text">
+            <p>实验完成！正在处理数据...</p>
+            <div class="status-message status-loading" id="status-message">
+              数据计算中，请稍候...
+            </div>
+          </div>
+        `;
+      },
+      choices: [],
+      on_load: async function() {
+        try {
+          const statusMessage = document.getElementById('status-message');
+
+          // 1. 创建或获取GitHub Issue（每个被试只创建一个）
+          statusMessage.textContent = "连接GitHub仓库...";
+          const issue = await getOrCreateIssue();
+
+          // 2. 生成GitHub评论内容（只包含数据点个数和实验时间）
+          statusMessage.textContent = "生成数据报告...";
+          const commentBody = generateGitHubComment(gazeData);
+
+          // 3. 添加评论到Issue（每天的数据作为一条评论）
+          statusMessage.textContent = "上传数据到GitHub Issues...";
+          await addIssueComment(issue.number, commentBody);
+
+          // 4. 生成CSV数据并上传到仓库
+          statusMessage.textContent = "生成CSV数据文件...";
+          const csvContent = generateCSVData(gazeData);
+          const fileName = `${userInfo.subjectId}-DAY_${userInfo.day}.csv`;
+
+          statusMessage.textContent = "上传CSV文件到GitHub...";
+          await uploadCSVToGitHub(csvContent, fileName);
+
+          // 5. 更新天数记录
+          localStorage.setItem(`day_${userInfo.subjectId}`, userInfo.day.toString());
+
+          // 6. 更新状态显示
+          statusMessage.className = "status-message status-success";
+          statusMessage.textContent = "数据上传成功！";
+
+          // 7. 显示数据报告和操作按钮
+          const content = `
+            <div class="centered-text">
+              <h2>第 ${userInfo.day} 天实验完成</h2>
+              ${userInfo.day === 30 ? '<p style="color:#27ae60;font-weight:bold;font-size:1.8rem;margin:20px 0;">恭喜您已成功完成30天眼动干预实验！</p>' : ''}
+              <p>详细眼动数据已成功上传至GitHub</p>
+              <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
+                <button class="copy-button" id="copy-btn">复制报告摘要</button>
+                <button class="github-button" id="github-btn">查看GitHub记录</button>
+                <button class="exit-button" id="exit-btn">退出实验</button>
+              </div>
+            </div>
+          `;
+
+          document.querySelector('.jspsych-content').innerHTML = content;
+
+          // 添加按钮事件
+          document.getElementById('copy-btn').addEventListener('click', function() {
+            // 计算数据点总数
+            const dataPoints = gazeData.reduce((acc, trial) => acc + trial.length, 0);
+            const summary = `被试ID: ${userInfo.subjectId}\n实验天数: ${userInfo.day}\n数据点数量: ${dataPoints}`;
+            navigator.clipboard.writeText(summary)
+              .then(() => alert('报告摘要已复制到剪贴板'))
+              .catch(err => console.error('复制失败:', err));
+          });
+
+          // GitHub查看权限验证
+          document.getElementById('github-btn').addEventListener('click', function() {
+            const authModal = document.getElementById('auth-modal');
+            const authError = document.getElementById('auth-error');
+            const authCode = document.getElementById('auth-code');
+
+            // 重置验证状态
+            authError.style.display = 'none';
+            authCode.value = '';
+
+            // 显示验证弹窗
+            authModal.style.display = 'flex';
+
+            // 确认按钮事件
+            document.getElementById('auth-confirm').onclick = function() {
+              if (authCode.value.toLowerCase() === 'eye') {
+                window.open(issue.html_url, '_blank');
+                authModal.style.display = 'none';
+              } else {
+                authError.style.display = 'block';
+              }
+            };
+
+            // 返回按钮事件
+            document.getElementById('auth-cancel').onclick = function() {
+              authModal.style.display = 'none';
+            };
+          });
+
+          // 退出实验按钮 - 改为刷新页面
+          document.getElementById('exit-btn').addEventListener('click', function() {
+            location.reload(); // 刷新页面回到登录界面
+          });
+
+        } catch (error) {
+          const statusMessage = document.getElementById('status-message');
+          statusMessage.className = "status-message status-error";
+          statusMessage.textContent = `数据处理失败: ${error.message}`;
+          console.error('完整错误信息:', error);
+
+          // 显示错误恢复选项
+          document.querySelector('.jspsych-content').innerHTML += `
+            <div style="margin-top: 20px; text-align: center;">
+              <button class="login-button" id="retry-btn">重试上传</button>
+              <button class="github-button" id="save-btn">保存数据到本地</button>
+              <button class="exit-button" id="exit-btn">退出实验</button>
+            </div>
+          `;
+
+          document.getElementById('retry-btn').addEventListener('click', function() {
+            jsPsych.finishTrial();
+          });
+
+          document.getElementById('save-btn').addEventListener('click', function() {
+            // 创建CSV格式的眼动数据
+            let csvContent = "trial,timestamp,x,y,duration\n";
+
+            gazeData.forEach((trialData, trialIndex) => {
+              trialData.forEach(point => {
+                csvContent += `${trialIndex + 1},${point.timestamp},${point.x},${point.y},${point.duration}\n`;
+              });
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `eyetracking_data_${userInfo.subjectId}_DAY${userInfo.day}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          });
+
+          // 退出实验按钮 - 改为刷新页面
+          document.getElementById('exit-btn').addEventListener('click', function() {
+            location.reload(); // 刷新页面回到登录界面
+          });
+        }
+      }
+    };
+
+    timeline.push(dataProcessingTrial);
+
     /* ==== 结束页面 ==== */
     const done = {
       type: jsPsychHtmlButtonResponse,
-      stimulus: `
-        <div class="centered-text">
-          <p>实验完成！</p>
-          <p>感谢您参与本实验。</p>
-          <p>如果您需要下载实验数据，请选择格式：</p>
-        </div>
-      `,
-      choices: ['下载 CSV', '下载 JSON'],
-      on_finish: function(data) {
-        if (data.response === 0) {
-          jsPsych.data.get().localSave('csv', '进食障碍眼动干预数据.csv');
-        }
-        if (data.response === 1) {
-          jsPsych.data.get().localSave('json', '进食障碍眼动干预数据.json');
-        }
+      stimulus: function() {
+        return `
+          <div class="centered-text">
+            <p>数据处理完成！</p>
+            ${userInfo && userInfo.day === 30 ? '<p style="color:#27ae60;font-weight:bold;font-size:1.8rem;margin:20px 0;">恭喜您已成功完成30天眼动干预实验！</p>' : ''}
+            <p>感谢您参与本实验。</p>
+          </div>
+        `;
+      },
+      choices: ['完成实验'],
+      on_finish: function() {
         // 实验结束时停止音乐
         if (window.globalAudio && !window.globalAudio.paused) {
           window.globalAudio.pause();
