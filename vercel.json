@@ -9,7 +9,7 @@
   "routes": [
     {
       "src": "/",
-      "dest": "fine.html"
+      "dest": "index.html"
     },
     {
       "src": "/api/gh-eye",
@@ -23,8 +23,9 @@
     },
     {
       "src": "/(.*)",
-      "dest": "fine.html"
+      "dest": "index.html"
     }
   ],
   "regions": ["iad1"]
 }
+
