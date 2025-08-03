@@ -1,5 +1,12 @@
 export default async function handler(request, response) {
-  // 提取请求来源并验证
+  // 提前验证必要的环境变量（移至最前面，尽早发现配置问题）
+  if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPO_OWNER || !process.env.GITHUB_REPO_NAME) {
+    return response
+      .status(500)
+      .json({ error: '服务器配置不完整', message: '缺少必要的GitHub API配置' });
+  }
+
+  // 提取请求来源并验证（不允许的来源直接拒绝，而非默认第一个）
   const origin = request.headers.get('origin') || '';
   const allowedOrigins = [
     'https://Enqiliu66.github.io',
@@ -7,42 +14,56 @@ export default async function handler(request, response) {
     'http://localhost:3000'
   ];
   const isAllowed = allowedOrigins.includes(origin);
-  const corsOrigin = isAllowed ? origin : allowedOrigins[0];
+  const corsOrigin = isAllowed ? origin : '';
 
   // 处理预检请求
   if (request.method === 'OPTIONS') {
+    const headers = {
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400'
+    };
+    // 只对允许的来源设置具体Origin
+    if (corsOrigin) headers['Access-Control-Allow-Origin'] = corsOrigin;
+
     return response
-      .setHeader('Access-Control-Allow-Credentials', 'true')
-      .setHeader('Access-Control-Allow-Origin', corsOrigin)
-      .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-      .setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-      .setHeader('Access-Control-Max-Age', '86400')
+      .setHeaders(headers)
       .status(200)
       .end();
   }
 
-  // 设置基础CORS响应头
+  // 设置基础响应头
   response.setHeader('Access-Control-Allow-Credentials', 'true');
-  response.setHeader('Access-Control-Allow-Origin', corsOrigin);
+  if (corsOrigin) response.setHeader('Access-Control-Allow-Origin', corsOrigin);
   response.setHeader('Content-Type', 'application/json');
 
   try {
     // 验证请求方法（只允许POST）
     if (request.method !== 'POST') {
-      return response.status(405).json({ error: '只允许POST请求' });
+      return response.status(405).json({
+        error: '方法不允许',
+        message: '只支持POST请求'
+      });
     }
 
-    // 解析请求体
-    const body = await request.json().catch(() => {
-      throw new Error('无效的JSON格式');
-    });
-    const { action } = body;
+    // 解析请求体（增加更友好的错误提示）
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      return response.status(400).json({
+        error: '请求格式错误',
+        message: '无效的JSON格式，请检查请求体'
+      });
+    }
 
-    // 验证必要的环境变量
-    if (!process.env.GITHUB_TOKEN || !process.env.GITHUB_REPO_OWNER || !process.env.GITHUB_REPO_NAME) {
-      return response.status(500).json({
-        error: '服务器配置不完整',
-        message: '缺少必要的GitHub API配置'
+    const { action } = body;
+    if (!action) {
+      return response.status(400).json({
+        error: '缺少参数',
+        message: '必须指定操作类型(action)',
+        availableActions: ['create_issue', 'add_comment', 'upload_csv']
       });
     }
 
@@ -51,20 +72,28 @@ export default async function handler(request, response) {
     const repoPath = `repos/${process.env.GITHUB_REPO_OWNER}/${process.env.GITHUB_REPO_NAME}`;
     const authHeader = `token ${process.env.GITHUB_TOKEN}`;
     const userAgent = 'Eye-ED Experiment API';
+    // 添加fetch超时设置
+    const fetchWithTimeout = async (url, options, timeout = 10000) => {
+      return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('请求超时')), timeout)
+        )
+      ]);
+    };
 
     switch (action) {
       case 'create_issue': {
-        // 创建或获取Issue
         const { subjectId, gender, age } = body;
         if (!subjectId) {
-          return response.status(400).json({ error: '缺少被试ID (subjectId)' });
+          return response.status(400).json({ error: '缺少参数', message: '被试ID (subjectId)为必填项' });
         }
 
         // 先查询是否存在该被试的Issue
         const searchUrl = new URL(`${githubApiBase}/search/issues`);
-        searchUrl.searchParams.set('q', `repo:${process.env.GITHUB_REPO_OWNER}/${process.env.GITHUB_REPO_NAME}+title:${subjectId}+type:issue`);
+        searchUrl.searchParams.set('q', `repo:${process.env.GITHUB_REPO_OWNER}/${process.env.GITHUB_REPO_NAME}+title:${encodeURIComponent(subjectId)}+type:issue`);
 
-        const searchResponse = await fetch(searchUrl.toString(), {
+        const searchResponse = await fetchWithTimeout(searchUrl.toString(), {
           headers: {
             'Authorization': authHeader,
             'User-Agent': userAgent,
@@ -73,16 +102,19 @@ export default async function handler(request, response) {
         });
 
         if (!searchResponse.ok) {
-          throw new Error(`搜索Issue失败: ${searchResponse.statusText}`);
+          throw new Error(`搜索Issue失败: ${searchResponse.status} ${searchResponse.statusText}`);
         }
 
         const searchData = await searchResponse.json();
 
         // 如果存在则返回现有Issue，否则创建新Issue
         if (searchData.total_count > 0) {
-          return response.status(200).json(searchData.items[0]);
+          return response.status(200).json({
+            ...searchData.items[0],
+            message: 'Issue已存在'
+          });
         } else {
-          const createResponse = await fetch(`${githubApiBase}/${repoPath}/issues`, {
+          const createResponse = await fetchWithTimeout(`${githubApiBase}/${repoPath}/issues`, {
             method: 'POST',
             headers: {
               'Authorization': authHeader,
@@ -102,13 +134,22 @@ export default async function handler(request, response) {
       }
 
       case 'add_comment': {
-        // 添加评论到Issue
         const { issueNumber, commentBody } = body;
-        if (!issueNumber || !commentBody) {
-          return response.status(400).json({ error: '缺少Issue编号(issueNumber)或评论内容(commentBody)' });
+        if (issueNumber === undefined || !commentBody) {
+          return response.status(400).json({
+            error: '缺少参数',
+            message: 'Issue编号(issueNumber)和评论内容(commentBody)均为必填项'
+          });
+        }
+        // 验证issueNumber为数字
+        if (typeof issueNumber !== 'number' || !Number.isInteger(issueNumber) || issueNumber <= 0) {
+          return response.status(400).json({
+            error: '参数错误',
+            message: 'issueNumber必须为正整数'
+          });
         }
 
-        const commentResponse = await fetch(`${githubApiBase}/${repoPath}/issues/${issueNumber}/comments`, {
+        const commentResponse = await fetchWithTimeout(`${githubApiBase}/${repoPath}/issues/${issueNumber}/comments`, {
           method: 'POST',
           headers: {
             'Authorization': authHeader,
@@ -120,7 +161,7 @@ export default async function handler(request, response) {
         });
 
         if (!commentResponse.ok) {
-          throw new Error(`添加评论失败: ${commentResponse.statusText}`);
+          throw new Error(`添加评论失败: ${commentResponse.status} ${commentResponse.statusText}`);
         }
 
         const commentData = await commentResponse.json();
@@ -128,14 +169,23 @@ export default async function handler(request, response) {
       }
 
       case 'upload_csv': {
-        // 上传CSV文件
         const { fileName, content } = body;
         if (!fileName || !content) {
-          return response.status(400).json({ error: '缺少文件名(fileName)或文件内容(content)' });
+          return response.status(400).json({
+            error: '缺少参数',
+            message: '文件名(fileName)和文件内容(content)均为必填项'
+          });
+        }
+        // 验证文件名格式
+        if (!fileName.endsWith('.csv')) {
+          return response.status(400).json({
+            error: '文件格式错误',
+            message: '文件名必须以.csv结尾'
+          });
         }
 
         // 计算文件SHA（GitHub API要求）
-        const blobResponse = await fetch(`${githubApiBase}/git/blobs`, {
+        const blobResponse = await fetchWithTimeout(`${githubApiBase}/git/blobs`, {
           method: 'POST',
           headers: {
             'Authorization': authHeader,
@@ -150,16 +200,17 @@ export default async function handler(request, response) {
         });
 
         if (!blobResponse.ok) {
-          throw new Error(`创建文件blob失败: ${blobResponse.statusText}`);
+          throw new Error(`创建文件blob失败: ${blobResponse.status} ${blobResponse.statusText}`);
         }
 
         const blobData = await blobResponse.json();
         if (!blobData.sha) {
-          return response.status(500).json({ error: '创建文件blob失败，未返回SHA' });
+          return response.status(500).json({ error: '创建文件blob失败', message: '未返回SHA值' });
         }
 
-        // 获取主分支引用
-        const refResponse = await fetch(`${githubApiBase}/${repoPath}/git/refs/heads/main`, {
+        // 获取主分支引用（支持配置默认分支）
+        const defaultBranch = process.env.GITHUB_DEFAULT_BRANCH || 'main';
+        const refResponse = await fetchWithTimeout(`${githubApiBase}/${repoPath}/git/refs/heads/${defaultBranch}`, {
           headers: {
             'Authorization': authHeader,
             'User-Agent': userAgent,
@@ -168,16 +219,16 @@ export default async function handler(request, response) {
         });
 
         if (!refResponse.ok) {
-          throw new Error(`获取主分支引用失败: ${refResponse.statusText}`);
+          throw new Error(`获取${defaultBranch}分支引用失败: ${refResponse.status} ${refResponse.statusText}`);
         }
 
         const refData = await refResponse.json();
         if (!refData.object?.sha) {
-          return response.status(500).json({ error: '获取主分支引用失败，未找到SHA' });
+          return response.status(500).json({ error: '获取分支引用失败', message: '未找到分支SHA' });
         }
 
         // 获取最新提交
-        const commitResponse = await fetch(`${githubApiBase}/git/commits/${refData.object.sha}`, {
+        const commitResponse = await fetchWithTimeout(`${githubApiBase}/git/commits/${refData.object.sha}`, {
           headers: {
             'Authorization': authHeader,
             'User-Agent': userAgent,
@@ -186,13 +237,13 @@ export default async function handler(request, response) {
         });
 
         if (!commitResponse.ok) {
-          throw new Error(`获取最新提交失败: ${commitResponse.statusText}`);
+          throw new Error(`获取最新提交失败: ${commitResponse.status} ${commitResponse.statusText}`);
         }
 
         const commitData = await commitResponse.json();
 
         // 创建树
-        const treeResponse = await fetch(`${githubApiBase}/${repoPath}/git/trees`, {
+        const treeResponse = await fetchWithTimeout(`${githubApiBase}/${repoPath}/git/trees`, {
           method: 'POST',
           headers: {
             'Authorization': authHeader,
@@ -212,13 +263,13 @@ export default async function handler(request, response) {
         });
 
         if (!treeResponse.ok) {
-          throw new Error(`创建树失败: ${treeResponse.statusText}`);
+          throw new Error(`创建树失败: ${treeResponse.status} ${treeResponse.statusText}`);
         }
 
         const treeData = await treeResponse.json();
 
         // 创建新提交
-        const newCommitResponse = await fetch(`${githubApiBase}/${repoPath}/git/commits`, {
+        const newCommitResponse = await fetchWithTimeout(`${githubApiBase}/${repoPath}/git/commits`, {
           method: 'POST',
           headers: {
             'Authorization': authHeader,
@@ -234,13 +285,13 @@ export default async function handler(request, response) {
         });
 
         if (!newCommitResponse.ok) {
-          throw new Error(`创建新提交失败: ${newCommitResponse.statusText}`);
+          throw new Error(`创建新提交失败: ${newCommitResponse.status} ${newCommitResponse.statusText}`);
         }
 
         const newCommitData = await newCommitResponse.json();
 
         // 更新分支引用
-        const updateRefResponse = await fetch(`${githubApiBase}/${repoPath}/git/refs/heads/main`, {
+        const updateRefResponse = await fetchWithTimeout(`${githubApiBase}/${repoPath}/git/refs/heads/${defaultBranch}`, {
           method: 'PATCH',
           headers: {
             'Authorization': authHeader,
@@ -254,14 +305,23 @@ export default async function handler(request, response) {
         });
 
         if (!updateRefResponse.ok) {
-          throw new Error(`更新分支引用失败: ${updateRefResponse.statusText}`);
+          throw new Error(`更新分支引用失败: ${updateRefResponse.status} ${updateRefResponse.statusText}`);
         }
 
-        return response.status(200).json({ success: true, fileName, commitSha: newCommitData.sha });
+        return response.status(200).json({
+          success: true,
+          fileName,
+          commitSha: newCommitData.sha,
+          message: `文件已成功上传至${defaultBranch}分支`
+        });
       }
 
       default:
-        return response.status(400).json({ error: '未知操作', availableActions: ['create_issue', 'add_comment', 'upload_csv'] });
+        return response.status(400).json({
+          error: '未知操作',
+          message: `不支持的操作类型: ${action}`,
+          availableActions: ['create_issue', 'add_comment', 'upload_csv']
+        });
     }
   } catch (error) {
     console.error('API错误:', error);
