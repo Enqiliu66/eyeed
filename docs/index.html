@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>进食障碍眼动干预程序 - 改进版</title>
+  <title>进食障碍眼动干预程序</title>
 
   <!-- 引入 Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -605,7 +605,7 @@
 <body>
   <!-- 顶部导航栏 -->
   <div class="header">
-    <h1>进食障碍眼动干预实验 - 改进版</h1>
+    <h1>进食障碍眼动干预实验</h1>
   </div>
 
   <!-- 音乐播放指示 -->
@@ -696,7 +696,6 @@
         element.textContent = value;
         element.className = isError ? 'status-error' : 'status-value';
       }
-      document.getElementById('init-status-panel').style.display = 'block';
     }
 
     // 显示/隐藏调试信息
@@ -1244,6 +1243,16 @@
       type: jsPsychWebgazerInitCamera,
       on_error: function() {
         cameraPermissionDenied = true;
+        updateInitStatus('webgazer', '初始化失败', true);
+      },
+      on_load: function() {
+        updateInitStatus('webgazer', '初始化中...');
+      },
+      on_finish: function() {
+        if (!cameraPermissionDenied) {
+          updateInitStatus('webgazer', '已初始化');
+          webgazerInitialized = true;
+        }
       }
     };
     timeline.push(init_camera);
