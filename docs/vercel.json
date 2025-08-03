@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "echo 'No build required'",
+  "buildCommand": "echo 'No build required'",  
   "outputDirectory": ".",
   "public": true,
 
@@ -13,16 +13,18 @@
   },
 
   "routes": [
+
     {
-      "src": "/new.html",
-      "dest": "/new.html",
+      "src": "/",
+      "dest": "/docs/index.html"
+    },
+
+    {
+      "src": "/index.html",
+      "dest": "/docs/index.html",
       "headers": {
         "Cache-Control": "public, max-age=60, s-maxage=300"
       }
-    },
-    {
-      "src": "/",
-      "dest": "/new.html"
     },
 
     {
@@ -32,12 +34,12 @@
 
     {
       "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg))$",
+      "dest": "/docs/$1",
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable"
       }
     }
   ],
-
 
   "cors": {
     "allowedOrigins": [
@@ -49,7 +51,6 @@
     "allowedHeaders": ["Content-Type", "Authorization"]
   },
 
-
   "regions": ["iad1", "sfo1", "lhr1"],
-  "frameworkPreset": null 
+  "frameworkPreset": null
 }
