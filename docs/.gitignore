@@ -1,5 +1,0 @@
-# .gitignore
-.env.local       # 忽略存储Token的环境变量文件
-node_modules/    # 忽略npm安装的依赖文件夹（如果后续用npm的话)
-.vercel/         # 忽略 Vercel 本地配置
-.vercel
