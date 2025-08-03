@@ -1,34 +1,33 @@
-{
-  "version": 2,
-  "buildCommand": "cp -r docs/* /vercel/output",  
-  "outputDirectory": "/vercel/output",
-  "public": true,
-  "builds": [
-    {
-      "src": "api/gh-eye.js",
-      "use": "@vercel/node"
+{  
+"version": 2,  
+"buildCommand": "echo '=== 检查docs目录内容 ===' && ls -la docs || echo 'docs目录不存在' && echo '=== 开始复制文件 ===' && cp -r docs/* /vercel/output 2>&1 || echo '复制失败' && echo '=== 检查输出输出目录输出目录内容 ===' && ls -la /vercel/output || echo '输出目录不存在'",  
+"outputDirectory": "/vercel/output",  
+"public": true,  
+"builds": [
+    {      
+"src": "api/gh-eye.js",      
+"use": "@vercel/node"
     }
-  ],
-  "routes": [
-    {
-      "src": "/",
-      "dest": "index.html"
-    },
-    {
-      "src": "/api/gh-eye",
-      "dest": "api/gh-eye.js",
-      "methods": ["POST", "OPTIONS"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
+  ],  
+"routes": [
+    {      
+"src": "/api/gh-eye",      
+"dest": "api/gh-eye.js",      
+"methods": ["POST", "OPTIONS"],      
+"headers": {        
+"Access-Control-Allow-Origin": "*",        
+"Access-Control-Allow-Methods": "POST, OPTIONS",        
+"Access-Control-Allow-Headers": "Content-Type"
       }
     },
-    {
-      "src": "/(.*)",
-      "dest": "index.html"
+    {      
+"src": "/",      
+"dest": "/index.html"
+    },
+    {      
+"src": "/(.*)",      
+"dest": "/index.html"
     }
-  ],
-  "regions": ["iad1"]
+  ],  
+"regions": ["iad1"]
 }
-    
