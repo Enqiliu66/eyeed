@@ -27,24 +27,12 @@
     {
       "src": "/api/gh-eye",
       "dest": "api/gh-eye.js",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Credentials",
-          "value": "true"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "https://Enqiliu66.github.io"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization"
-        }
-      ]
+      "headers": {
+        "Access-Control-Allow-Origin": "https://Enqiliu66.github.io, http://localhost:5500, http://localhost:3000",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400"
+      }
     },
     {
       "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg))$",
@@ -55,18 +43,5 @@
     }
   ],
 
-  "cors": {
-    "allowedOrigins": [
-      "https://Enqiliu66.github.io",
-      "http://localhost:5500",
-      "http://localhost:3000"
-    ],
-    "allowedMethods": ["GET", "POST", "PUT", "OPTIONS"],
-    "allowedHeaders": ["Content-Type", "Authorization"],
-    "exposedHeaders": [],
-    "maxAge": 86400
-  },
-
-  "regions": ["iad1", "sfo1", "lhr1"],
-  "frameworkPreset": null
+  "regions": ["iad1", "sfo1", "lhr1"]
 }
