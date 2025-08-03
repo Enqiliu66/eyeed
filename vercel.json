@@ -7,7 +7,7 @@
 
   "functions": {
     "api/gh-eye.js": {
-      "runtime": "edge",
+      "runtime": "@vercel/edge@latest",
       "memory": 128,
       "maxDuration": 10
     }
@@ -44,6 +44,7 @@
     }
   ]
 }
+
 
 
 
