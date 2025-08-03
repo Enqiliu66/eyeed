@@ -5,7 +5,8 @@
     
     {
       "src": "api/gh-eye.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": { "nodejs": "18.x" }  
     },
     
     {
@@ -14,7 +15,7 @@
     }
   ],
   "routes": [
-    
+   
     {
       "src": "/api/gh-eye",
       "dest": "api/gh-eye.js",
@@ -25,15 +26,15 @@
         "Access-Control-Allow-Headers": "Content-Type"
       }
     },
-    
+   
     {
       "src": "/",
       "dest": "docs/index.html"
     },
-  
     {
       "src": "/(.*)",
       "dest": "docs/$1"
     }
   ]
 }
+    
