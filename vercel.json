@@ -1,0 +1,72 @@
+{
+  "version": 2,
+  "buildCommand": "echo 'No build required'",  
+  "outputDirectory": ".",
+  "public": true,
+
+  "functions": {
+    "api/gh-eye.js": {
+      "runtime": "edge",
+      "memory": 128,
+      "maxDuration": 10
+    }
+  },
+
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/docs/index.html"
+    },
+    {
+      "src": "/index.html",
+      "dest": "/docs/index.html",
+      "headers": {
+        "Cache-Control": "public, max-age=60, s-maxage=300"
+      }
+    },
+    {
+      "src": "/api/gh-eye",
+      "dest": "api/gh-eye.js",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://Enqiliu66.github.io"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    },
+    {
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg))$",
+      "dest": "/docs/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    }
+  ],
+
+  "cors": {
+    "allowedOrigins": [
+      "https://Enqiliu66.github.io",
+      "http://localhost:5500",
+      "http://localhost:3000"
+    ],
+    "allowedMethods": ["GET", "POST", "PUT", "OPTIONS"],
+    "allowedHeaders": ["Content-Type", "Authorization"],
+    "exposedHeaders": [],
+    "maxAge": 86400
+  },
+
+  "regions": ["iad1", "sfo1", "lhr1"],
+  "frameworkPreset": null
+}
