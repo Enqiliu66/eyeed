@@ -1,47 +1,30 @@
 {
   "version": 2,
-  "buildCommand": "",
-  "outputDirectory": "docs",
-  "public": true,
-
-  "functions": {
-    "api/gh-eye.mjs": {
-      "runtime": "edge@20.0.0"
+  "builds": [
+    {
+      "src": "api/gh-eye.js",
+      "use": "@vercel/node"
     }
-  },
-
+  ],
   "routes": [
     {
       "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/index.html",
-      "dest": "/index.html",
-      "headers": {
-        "Cache-Control": "public, max-age=60, s-maxage=300"
-      }
+      "dest": "fine.html"
     },
     {
       "src": "/api/gh-eye",
-      "dest": "api/gh-eye.mjs",
+      "dest": "api/gh-eye.js",
+      "methods": ["POST", "OPTIONS"],
       "headers": {
-        "Access-Control-Allow-Origin": "https://Enqiliu66.github.io, http://localhost:5500, http://localhost:3000",
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age": "86400"
+        "Access-Control-Allow-Headers": "Content-Type"
       }
     },
     {
-      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|ico|svg))$",
-      "dest": "/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
+      "src": "/(.*)",
+      "dest": "fine.html"
     }
   ],
-
-  "regions": ["iad1", "sfo1", "lhr1"]
+  "regions": ["iad1"]
 }
-
-
