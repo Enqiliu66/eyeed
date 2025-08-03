@@ -889,7 +889,7 @@
       }
     }
 
-    // 上传CSV文件到GitHub仓库
+    // 上传CSV文件到GitHub仓库的data目录
     async function uploadCSVToGitHub(csvContent, fileName, retries = 3) {
       const MAX_FILE_SIZE = 700 * 1024; // 700KB
       const encoder = new TextEncoder();
@@ -897,9 +897,9 @@
       const totalSize = csvData.length;
 
       try {
-        // 如果文件小于最大限制，直接上传
+        // 如果文件小于最大限制，直接上传到data目录
         if (totalSize <= MAX_FILE_SIZE) {
-          return await uploadFilePart(csvContent, fileName, retries);
+          return await uploadFilePart(csvContent, `data/${fileName}`, retries);
         }
 
         // 分割文件
@@ -925,8 +925,8 @@
           const partData = csvData.slice(startIndex, endIndex);
           const partContent = new TextDecoder().decode(partData);
 
-          // 生成文件名（添加分块编号）
-          const partFileName = fileName.replace('.csv', `_part${partIndex}.csv`);
+          // 生成文件名（添加分块编号并放入data目录）
+          const partFileName = `data/${fileName.replace('.csv', `_part${partIndex}.csv`)}`;
 
           // 上传分块
           uploadPromises.push(uploadFilePart(partContent, partFileName, retries));
@@ -1690,12 +1690,14 @@
             statusMessage.textContent = "上传数据到GitHub Issues...";
             await addIssueComment(issue.number, commentBody);
 
-            // 4. 生成CSV数据并上传到仓库
+            // 4. 生成CSV数据并上传到仓库的data目录
             statusMessage.textContent = "生成CSV数据文件...";
             const csvContent = generateCSVData(gazeData);
-            const fileName = `${userInfo.subjectId}-DAY_${userInfo.day}.csv`;
 
-            statusMessage.textContent = "上传CSV文件到GitHub...";
+            // 使用更安全的文件名格式：subjectId_day.csv
+            const fileName = `${userInfo.subjectId}_day${userInfo.day}.csv`;
+
+            statusMessage.textContent = "上传CSV文件到GitHub的data目录...";
             await uploadCSVToGitHub(csvContent, fileName);
 
             // 5. 更新天数记录
@@ -1710,7 +1712,7 @@
               <div class="centered-text">
                 <h2>第 ${userInfo.day} 天实验完成</h2>
                 ${userInfo.day === 30 ? '<p style="color:#27ae60;font-weight:bold;font-size:1.8rem;margin:20px 0;">恭喜您已成功完成30天眼动干预实验！</p>' : ''}
-                <p>详细眼动数据已成功上传至GitHub</p>
+                <p>详细眼动数据已成功上传至GitHub仓库的data目录</p>
                 <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
                   <button class="copy-button" id="copy-btn">复制报告摘要</button>
                   <button class="github-button" id="github-btn">查看GitHub记录</button>
@@ -1725,7 +1727,7 @@
             document.getElementById('copy-btn').addEventListener('click', function() {
               // 计算数据点总数
               const dataPoints = gazeData.reduce((acc, trial) => acc + trial.length, 0);
-              const summary = `被试ID: ${userInfo.subjectId}\n实验天数: ${userInfo.day}\n数据点数量: ${dataPoints}`;
+              const summary = `被试ID: ${userInfo.subjectId}\n实验天数: ${userInfo.day}\n数据点数量: ${dataPoints}\n文件位置: data/${fileName}`;
               navigator.clipboard.writeText(summary)
                 .then(() => alert('报告摘要已复制到剪贴板'))
                 .catch(err => console.error('复制失败:', err));
