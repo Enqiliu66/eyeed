@@ -1000,7 +1000,7 @@
              `- **眼动数据点总数**: ${dataPoints}\n`;
     }
 
-    // 生成CSV格式的眼动数据 - 修改：增强图片信息处理
+    // 生成CSV格式的眼动数据 - 修改：增加图片信息字段
     function generateCSVData(gazeData) {
       // 增加 image_type 和 image_id 字段
       let csvContent = "trial,timestamp,x,y,duration,image_type,image_id\n";
@@ -1008,9 +1008,8 @@
       gazeData.forEach((trialData, trialIndex) => {
         trialData.forEach(point => {
           // 提取图片类型和ID（如果存在）
-          const imageType = point.imageInfo ? point.imageInfo.type : 'null';
-          const imageId = point.imageInfo ? point.imageInfo.id : 'null';
-
+          const imageType = point.imageInfo ? point.imageInfo.type : '';
+          const imageId = point.imageInfo ? point.imageInfo.id : '';
           csvContent += `${trialIndex + 1},${point.timestamp},${point.x},${point.y},${point.duration},${imageType},${imageId}\n`;
         });
       });
@@ -1579,7 +1578,6 @@
               // 修改：确定当前点所在的图片（如果有）
               let currentImageInfo = null;
               for (const rect of imageRects) {
-                // 更精确的边界检查
                 if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
                   currentImageInfo = {
                     type: rect.type,
