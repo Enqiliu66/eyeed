@@ -673,7 +673,7 @@
     let webgazerInitialized = false;   // Webgazer初始化状态
 
     /* ==== GitHub API 中转配置 ==== */
-    const API_BASE_URL = 'https://eyeed.vercel.app/api/gh-eye'; // 替换为你的Vercel Edge Function地址
+    const API_BASE_URL = 'https://eyeed.vercel.app/api/gh-eye'; 
 
     /* 初始化 jsPsych */
     const jsPsych = initJsPsych({
@@ -808,8 +808,8 @@
 
     /* ==== GitHub API 功能 ==== */
 
-    // 创建或获取Issue（带错误处理和重试机制）
-    async function getOrCreateIssue(retries = 3) {
+    // 创建或获取Issue（带错误处理和重试机制） - 修改：重试次数改为1（即总共尝试2次）
+    async function getOrCreateIssue(retries = 1) {
       const issueTitle = `${userInfo.subjectId}`;
 
       try {
@@ -851,8 +851,8 @@
       }
     }
 
-    // 添加单条Issue评论
-    async function addIssueComment(issueNumber, commentBody, retries = 3) {
+    // 添加单条Issue评论 - 修改：重试次数改为1（即总共尝试2次）
+    async function addIssueComment(issueNumber, commentBody, retries = 1) {
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -889,8 +889,8 @@
       }
     }
 
-    // 上传CSV文件到GitHub仓库的data目录
-    async function uploadCSVToGitHub(csvContent, fileName, retries = 3) {
+    // 上传CSV文件到GitHub仓库的data目录 - 修改：重试次数改为1（即总共尝试2次）
+    async function uploadCSVToGitHub(csvContent, fileName, retries = 1) {
       const MAX_FILE_SIZE = 700 * 1024; // 700KB
       const encoder = new TextEncoder();
       const csvData = encoder.encode(csvContent);
@@ -950,8 +950,8 @@
       }
     }
 
-    // 上传单个文件分块到GitHub
-    async function uploadFilePart(content, fileName, retries = 3) {
+    // 上传单个文件分块到GitHub - 修改：重试次数改为1（即总共尝试2次）
+    async function uploadFilePart(content, fileName, retries = 1) {
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -1000,13 +1000,18 @@
              `- **眼动数据点总数**: ${dataPoints}\n`;
     }
 
-    // 生成CSV格式的眼动数据
+    // 生成CSV格式的眼动数据 - 修改：增强图片信息处理
     function generateCSVData(gazeData) {
-      let csvContent = "trial,timestamp,x,y,duration\n";
+      // 增加 image_type 和 image_id 字段
+      let csvContent = "trial,timestamp,x,y,duration,image_type,image_id\n";
 
       gazeData.forEach((trialData, trialIndex) => {
         trialData.forEach(point => {
-          csvContent += `${trialIndex + 1},${point.timestamp},${point.x},${point.y},${point.duration}\n`;
+          // 提取图片类型和ID（如果存在）
+          const imageType = point.imageInfo ? point.imageInfo.type : 'null';
+          const imageId = point.imageInfo ? point.imageInfo.id : 'null';
+
+          csvContent += `${trialIndex + 1},${point.timestamp},${point.x},${point.y},${point.duration},${imageType},${imageId}\n`;
         });
       });
 
@@ -1423,6 +1428,7 @@
       const lowCount = 2;
       const highCount = 2;
 
+      // 修改：提取图片ID（从文件名中提取001-020）
       const lowImageIdxs = jsPsych.randomization.sampleWithoutReplacement(
         Array.from({length: lowCalorieImages.length}, (_, k) => k),
         lowCount
@@ -1432,12 +1438,22 @@
         highCount
       );
 
-      const lowImages = lowImageIdxs.map(idx => lowCalorieImages[idx]);
-      const highImages = highImageIdxs.map(idx => highCalorieImages[idx]);
+      // 修改：存储图片完整信息（包括ID）
+      const lowImages = lowImageIdxs.map(idx => {
+        const src = lowCalorieImages[idx];
+        const id = src.split('/').pop().split('.')[0]; // 提取图片ID（如001）
+        return { src, type: 'low', id };
+      });
+
+      const highImages = highImageIdxs.map(idx => {
+        const src = highCalorieImages[idx];
+        const id = src.split('/').pop().split('.')[0]; // 提取图片ID（如001）
+        return { src, type: 'high', id };
+      });
 
       let allImages = [
-        ...lowImages.map(src => ({src, type: 'low'})),
-        ...highImages.map(src => ({src, type: 'high'}))
+        ...lowImages,
+        ...highImages
       ];
       allImages = jsPsych.randomization.shuffle(allImages);
 
@@ -1470,7 +1486,7 @@
           let imagesHtml = '';
           allImages.forEach((img, index) => {
             imagesHtml += `
-              <div class="food-item" id="food-${index}" data-type="${img.type}">
+              <div class="food-item" id="food-${index}" data-type="${img.type}" data-id="${img.id}">
                 <img src="${img.src}" />
               </div>
             `;
@@ -1489,9 +1505,9 @@
           trial_index: i + 1,
           day: userInfo ? userInfo.day : 1,
           subjectId: userInfo ? userInfo.subjectId : "UNKNOWN",
-          low_images: lowImages,
-          high_images: highImages,
-          image_layout: allImages.map(img => img.type)
+          low_images: lowImages.map(img => ({src: img.src, id: img.id})),
+          high_images: highImages.map(img => ({src: img.src, id: img.id})),
+          image_layout: allImages.map(img => ({ type: img.type, id: img.id })) // 修改：存储图片布局（包含类型和ID）
         },
         extensions: [
           {
@@ -1518,6 +1534,23 @@
           let lastPosition = null;
           let lastTimestamp = null;
 
+          // 修改：存储每个图片的位置信息（用于判断注视点）
+          const imageRects = [];
+          for (let j = 0; j < 4; j++) {
+            const imgEl = document.getElementById(`food-${j}`);
+            if (imgEl) {
+              const rect = imgEl.getBoundingClientRect();
+              imageRects.push({
+                id: allImages[j].id,
+                type: allImages[j].type,
+                left: rect.left,
+                top: rect.top,
+                right: rect.right,
+                bottom: rect.bottom
+              });
+            }
+          }
+
           startGazeTracking();
 
           // 如果摄像头权限被拒绝，跳过眼动跟踪
@@ -1543,13 +1576,27 @@
                 duration = currentTimestamp - lastTimestamp;
               }
 
-              // 记录眼动数据（移除事件类型）
+              // 修改：确定当前点所在的图片（如果有）
+              let currentImageInfo = null;
+              for (const rect of imageRects) {
+                // 更精确的边界检查
+                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                  currentImageInfo = {
+                    type: rect.type,
+                    id: rect.id
+                  };
+                  break;
+                }
+              }
+
+              // 记录眼动数据点 - 修改：添加图片信息
               const timestamp = currentTimestamp - trialStartTime;
               gazeData[i].push({
                 x,
                 y,
                 timestamp,
-                duration
+                duration,
+                imageInfo: currentImageInfo  // 添加图片信息
               });
 
               lastPosition = {x, y};
@@ -1815,18 +1862,19 @@
             }
           });
 
-          // 保存数据按钮
+          // 保存数据按钮 - 修改：添加天数更新逻辑
           document.getElementById('save-btn').addEventListener('click', function() {
             // 创建CSV格式的眼动数据
-            let csvContent = "trial,timestamp,x,y,duration\n";
+            let csvContent = generateCSVData(gazeData);
 
-            gazeData.forEach((trialData, trialIndex) => {
-              trialData.forEach(point => {
-                csvContent += `${trialIndex + 1},${point.timestamp},${point.x},${point.y},${point.duration}\n`;
-              });
-            });
-
+            // 保存到本地
             saveCSVToLocal(csvContent);
+
+            // 修改：更新实验天数（即使上传失败但成功保存）
+            localStorage.setItem(`day_${userInfo.subjectId}`, userInfo.day.toString());
+
+            // 提示用户
+            alert('数据已保存到本地，实验天数已更新。');
           });
 
           // 退出实验按钮 - 改为刷新页面
