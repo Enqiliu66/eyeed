@@ -673,7 +673,7 @@
     let webgazerInitialized = false;   // Webgazer初始化状态
 
     /* ==== GitHub API 中转配置 ==== */
-    const API_BASE_URL = 'https://eyeed.vercel.app/api/gh-eye'; 
+    const API_BASE_URL = 'https://www.edemi-lab.online/api/gh-eye';
 
     /* 初始化 jsPsych */
     const jsPsych = initJsPsych({
@@ -808,7 +808,7 @@
 
     /* ==== GitHub API 功能 ==== */
 
-    // 创建或获取Issue（带错误处理和重试机制） - 修改：重试次数改为1（即总共尝试2次）
+    // 创建或获取Issue（带错误处理和重试机制） - 总共尝试2次
     async function getOrCreateIssue(retries = 1) {
       const issueTitle = `${userInfo.subjectId}`;
 
@@ -889,7 +889,7 @@
       }
     }
 
-    // 上传CSV文件到GitHub仓库的data目录 - 修改：重试次数改为1（即总共尝试2次）
+    // 上传CSV文件到GitHub仓库的data目录
     async function uploadCSVToGitHub(csvContent, fileName, retries = 1) {
       const MAX_FILE_SIZE = 700 * 1024; // 700KB
       const encoder = new TextEncoder();
@@ -950,7 +950,7 @@
       }
     }
 
-    // 上传单个文件分块到GitHub - 修改：重试次数改为1（即总共尝试2次）
+    // 上传单个文件分块到GitHub - 总共尝试2次
     async function uploadFilePart(content, fileName, retries = 1) {
       try {
         const controller = new AbortController();
@@ -1402,7 +1402,7 @@
     timeline.push(instructions);
 
     /* ==== 构建 30 个试次 ==== */
-    const trial_count = 1; // 30个试次
+    const trial_count = 30; // 30个试次
     const trials = [];
     const centralFixation = document.getElementById('central-fixation');
     const gazePoint = document.getElementById('gaze-point');
@@ -1411,23 +1411,11 @@
     // 存储眼动数据
     const gazeData = [];
 
-    function startGazeTracking() {
-      if (gazeUpdateInterval) clearInterval(gazeUpdateInterval);
-    }
-
-    function stopGazeTracking() {
-      if (gazeUpdateInterval) {
-        clearInterval(gazeUpdateInterval);
-        gazeUpdateInterval = null;
-      }
-      gazePoint.style.display = 'none';
-    }
-
     for (let i = 0; i < trial_count; i++) {
       const lowCount = 2;
       const highCount = 2;
 
-      // 修改：提取图片ID（从文件名中提取001-020）
+      // 提取图片ID（从文件名中提取001-020）
       const lowImageIdxs = jsPsych.randomization.sampleWithoutReplacement(
         Array.from({length: lowCalorieImages.length}, (_, k) => k),
         lowCount
@@ -1437,7 +1425,7 @@
         highCount
       );
 
-      // 修改：存储图片完整信息（包括ID）
+      // 存储图片完整信息（包括ID）
       const lowImages = lowImageIdxs.map(idx => {
         const src = lowCalorieImages[idx];
         const id = src.split('/').pop().split('.')[0]; // 提取图片ID（如001）
@@ -1533,24 +1521,33 @@
           let lastPosition = null;
           let lastTimestamp = null;
 
-          // 修改：存储每个图片的位置信息（用于判断注视点）
+          // 存储每个图片的位置信息（用于判断注视点）
           const imageRects = [];
-          for (let j = 0; j < 4; j++) {
-            const imgEl = document.getElementById(`food-${j}`);
-            if (imgEl) {
-              const rect = imgEl.getBoundingClientRect();
-              imageRects.push({
-                id: allImages[j].id,
-                type: allImages[j].type,
-                left: rect.left,
-                top: rect.top,
-                right: rect.right,
-                bottom: rect.bottom
-              });
-            }
-          }
 
-          startGazeTracking();
+          // 获取页面滚动偏移量
+          const scrollX = window.pageXOffset;
+          const scrollY = window.pageYOffset;
+
+          // 等待图片加载完成后再获取位置信息
+          setTimeout(() => {
+            for (let j = 0; j < 4; j++) {
+              const imgEl = document.getElementById(`food-${j}`);
+              if (imgEl) {
+                const rect = imgEl.getBoundingClientRect();
+                // 将视口坐标转换为文档坐标
+                imageRects.push({
+                  id: allImages[j].id,
+                  type: allImages[j].type,
+                  left: rect.left + scrollX,
+                  top: rect.top + scrollY,
+                  right: rect.right + scrollX,
+                  bottom: rect.bottom + scrollY
+                });
+              }
+            }
+            // 调试输出
+            console.log('Image positions:', imageRects);
+          }, 100); // 延迟100ms确保图片已渲染
 
           // 如果摄像头权限被拒绝，跳过眼动跟踪
           if (cameraPermissionDenied) {
@@ -1569,16 +1566,18 @@
               const x = pred.x, y = pred.y;
               const currentTimestamp = Date.now();
 
-              // 计算持续时间（如果这是连续点）
+              // 计算持续时间
               let duration = 0;
               if (lastTimestamp) {
                 duration = currentTimestamp - lastTimestamp;
               }
 
-              // 修改：确定当前点所在的图片（如果有）
+              // 确定当前点所在的图片（如果有）
               let currentImageInfo = null;
               for (const rect of imageRects) {
-                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                // 添加5px容差范围
+                if (x >= rect.left - 5 && x <= rect.right + 5 &&
+                    y >= rect.top - 5 && y <= rect.bottom + 5) {
                   currentImageInfo = {
                     type: rect.type,
                     id: rect.id
@@ -1587,7 +1586,7 @@
                 }
               }
 
-              // 记录眼动数据点 - 修改：添加图片信息
+              // 记录眼动数据点 - 添加图片信息
               const timestamp = currentTimestamp - trialStartTime;
               gazeData[i].push({
                 x,
@@ -1605,7 +1604,15 @@
                 const lowEl = document.querySelector(selector);
                 if (lowEl) {
                   const rect = lowEl.getBoundingClientRect();
-                  if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                  // 转换为文档坐标
+                  const docLeft = rect.left + scrollX;
+                  const docTop = rect.top + scrollY;
+                  const docRight = rect.right + scrollX;
+                  const docBottom = rect.bottom + scrollY;
+
+                  // 添加容差
+                  if (x >= docLeft - 5 && x <= docRight + 5 &&
+                      y >= docTop - 5 && y <= docBottom + 5) {
                     inLow = true;
                   }
                 }
@@ -1651,7 +1658,11 @@
           if (this.interval) {
             clearInterval(this.interval);
           }
-          stopGazeTracking();
+          if (gazeUpdateInterval) {
+            clearInterval(gazeUpdateInterval);
+            gazeUpdateInterval = null;
+          }
+          gazePoint.style.display = 'none';
         }
       };
 
