@@ -1,5 +1,3 @@
-const { Octokit } = require("@octokit/rest");
-
 module.exports = async (req, res) => {
   // 设置CORS头部
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,6 +22,20 @@ module.exports = async (req, res) => {
 
   try {
     const { action } = req.body;
+    let Octokit;
+    
+    // 动态导入 @octokit/rest 模块
+    try {
+      const octokitModule = await import('@octokit/rest');
+      Octokit = octokitModule.Octokit;
+    } catch (importError) {
+      console.error('模块导入失败:', importError);
+      return res.status(500).json({
+        error: '服务器模块加载失败',
+        message: `无法加载Octokit模块: ${importError.message}`
+      });
+    }
+
     const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
     switch (action) {
