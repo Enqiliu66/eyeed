@@ -22,6 +22,9 @@
   <script src="https://unpkg.com/@jspsych/extension-webgazer@1.0.3"></script>
   <script src="https://unpkg.com/@jspsych/plugin-call-function@1.0.0"></script>
 
+  <!-- 引入FileSaver.js用于保存文件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
   <style>
     /* ==== 全局样式 ==== */
     * {
@@ -496,7 +499,6 @@
       background: white;
       padding: 30px;
       border-radius: 15px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.3);
       text-align: center;
       z-index: 2000;
       max-width: 90%;
@@ -618,6 +620,151 @@
     .error-panel li {
       margin-bottom: 5px;
     }
+
+    /* ==== 问卷弹窗样式 ==== */
+    .questionnaire-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 2500;
+      justify-content: center;
+      align-items: center;
+    }
+    .questionnaire-content {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 800px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .questionnaire-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #777;
+      transition: color 0.3s;
+    }
+    .questionnaire-close:hover {
+      color: #e74c3c;
+    }
+    .questionnaire-title {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #2c3e50;
+      font-size: 1.8rem;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+    }
+    .question-section {
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+    .question-section-title {
+      font-size: 1.4rem;
+      color: #2980b9;
+      margin-bottom: 15px;
+    }
+    .question-item {
+      margin-bottom: 20px;
+    }
+    .question-item h4 {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .options-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .option-item {
+      padding: 8px 15px;
+      background: #f1f8ff;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .option-item.selected {
+      background: #3498db;
+      color: white;
+    }
+    .option-item:hover {
+      background: #d6eaf8;
+    }
+    .option-item.selected:hover {
+      background: #2980b9;
+    }
+    .slider-container {
+      width: 100%;
+      padding: 10px 0;
+    }
+    .slider-container input[type="range"] {
+      width: 100%;
+      height: 10px;
+      -webkit-appearance: none;
+      background: #e0e7ff;
+      border-radius: 5px;
+      outline: none;
+    }
+    .slider-container input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #3498db;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 5px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .text-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 100px;
+    }
+    .text-input:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+    .questionnaire-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 15px;
+    }
+    .questionnaire-error {
+      color: #e74c3c;
+      margin-top: 10px;
+      text-align: center;
+      display: none;
+    }
+    .reflection-invitation {
+      text-align: center;
+      color: #777;
+      font-size: 1.2rem;
+      margin-top: 30px;
+    }
   </style>
 </head>
 
@@ -678,6 +825,125 @@
   </div>
 
   <button class="debug-toggle" id="debug-toggle">显示调试信息</button>
+
+  <!-- 问卷弹窗 -->
+  <div class="questionnaire-modal" id="questionnaire-modal">
+    <div class="questionnaire-content">
+      <div class="questionnaire-close" id="questionnaire-close">×</div>
+      <h2 class="questionnaire-title">第<span id="questionnaire-week">1</span>次周反思总结</h2>
+
+      <div class="question-section">
+        <h3 class="question-section-title">一、情绪状态记录</h3>
+
+        <div class="question-item">
+          <h4>1. 过去7天，您的整体情绪波动强度如何？</h4>
+          <div class="slider-container">
+            <input type="range" min="0" max="10" value="5" id="emotion-intensity">
+            <div class="slider-labels">
+              <span>0（非常平静）</span>
+              <span>10（极度波动）</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="question-item">
+          <h4>2. 过去一周，您最常体验的三种情绪是？</h4>
+          <div class="options-container" id="emotion-options">
+            <div class="option-item" data-value="焦虑">焦虑</div>
+            <div class="option-item" data-value="沮丧">沮丧</div>
+            <div class="option-item" data-value="平静">平静</div>
+            <div class="option-item" data-value="愉悦">愉悦</div>
+            <div class="option-item" data-value="麻木">麻木</div>
+            <div class="option-item" data-value="愤怒">愤怒</div>
+            <div class="option-item" data-value="愧疚">愧疚</div>
+          </div>
+          <div id="selected-emotions" style="margin-top:10px;font-style:italic;color:#555;"></div>
+        </div>
+      </div>
+
+      <div class="question-section">
+        <h3 class="question-section-title">二、饮食行为评估</h3>
+
+        <div class="question-item">
+          <h4>1. 过去7天，您出现"无法停止进食或进食后强烈懊悔"的次数？</h4>
+          <div class="options-container" id="eating-regret-options">
+            <div class="option-item" data-value="0次">0次</div>
+            <div class="option-item" data-value="1-2次">1-2次</div>
+            <div class="option-item" data-value="3-4次">3-4次</div>
+            <div class="option-item" data-value="≥5次">≥5次</div>
+          </div>
+        </div>
+
+        <div class="question-item">
+          <h4>2. 您刻意跳过正餐或极端控制热量的天数为？</h4>
+          <div class="options-container" id="skip-meals-options">
+            <div class="option-item" data-value="0天">0天</div>
+            <div class="option-item" data-value="1-2天">1-2天</div>
+            <div class="option-item" data-value="3-5天">3-5天</div>
+            <div class="option-item" data-value="6-7天">6-7天</div>
+          </div>
+        </div>
+
+        <div class="question-item">
+          <h4>3. 您因体型/体重感到痛苦的频率？</h4>
+          <div class="options-container" id="body-pain-options">
+            <div class="option-item" data-value="从未">从未</div>
+            <div class="option-item" data-value="偶尔">偶尔</div>
+            <div class="option-item" data-value="经常">经常</div>
+            <div class="option-item" data-value="总是">总是</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="question-section">
+        <h3 class="question-section-title">三、音乐干预反馈</h3>
+
+        <div class="question-item">
+          <h4>1. 您完成音乐眼动训练的天数？</h4>
+          <div class="options-container" id="training-days-options">
+            <div class="option-item" data-value="0天">0天</div>
+            <div class="option-item" data-value="1-3天">1-3天</div>
+            <div class="option-item" data-value="4-6天">4-6天</div>
+            <div class="option-item" data-value="7天">7天</div>
+          </div>
+        </div>
+
+        <div class="question-item">
+          <h4>2. 音乐训练后，您在进食时的焦虑程度变化？</h4>
+          <div class="slider-container">
+            <input type="range" min="1" max="7" value="4" id="anxiety-change">
+            <div class="slider-labels">
+              <span>1（显著加剧）</span>
+              <span style="position: absolute; left: 50%; transform: translateX(-50%);">4（无变化）</span>
+              <span>7（显著缓解）</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="question-section">
+        <h3 class="question-section-title">四、关键事件记录</h3>
+
+        <div class="question-item">
+          <h4>过去一周是否有事件(如社交压力、情绪冲击)显著影响您的情绪或进食？请简述：</h4>
+          <!-- 修改点：将maxlength从100改为300 -->
+          <textarea class="text-input" id="key-events" placeholder="请描述具体事件（限300字）..." maxlength="300"></textarea>
+          <!-- 修改点：将100改为300 -->
+          <div style="text-align:right;font-size:0.8rem;color:#777;">
+            <span id="char-count">0</span>/300 字符
+          </div>
+        </div>
+      </div>
+
+      <div class="questionnaire-error" id="questionnaire-error">
+        请完成所有问题后再提交
+      </div>
+
+      <div class="questionnaire-buttons" id="submit-buttons">
+        <button class="login-button" id="submit-questionnaire">提交问卷</button>
+      </div>
+    </div>
+  </div>
 
   <!-- jsPsych 渲染目标容器 -->
   <div id="jspsych-target"></div>
@@ -1046,6 +1312,254 @@
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+    }
+
+    /* ==== 问卷相关函数 ==== */
+
+    // 初始化问卷
+    function initQuestionnaire() {
+      // 设置问卷周次（每7天为一次）
+      const weekNumber = Math.ceil(userInfo.day / 7);
+      document.getElementById('questionnaire-week').textContent = weekNumber;
+
+      // 情绪多选处理
+      const emotionOptions = document.querySelectorAll('#emotion-options .option-item');
+      const selectedEmotions = [];
+
+      emotionOptions.forEach(option => {
+        option.addEventListener('click', function() {
+          const value = this.getAttribute('data-value');
+
+          if (this.classList.contains('selected')) {
+            this.classList.remove('selected');
+            const index = selectedEmotions.indexOf(value);
+            if (index !== -1) selectedEmotions.splice(index, 1);
+          } else {
+            if (selectedEmotions.length < 3) {
+              this.classList.add('selected');
+              selectedEmotions.push(value);
+            }
+          }
+
+          // 更新已选情绪显示
+          document.getElementById('selected-emotions').textContent =
+            selectedEmotions.length > 0 ?
+            `已选: ${selectedEmotions.join(', ')}` :
+            '';
+        });
+      });
+
+      // 单选处理
+      const singleOptionContainers = [
+        '#eating-regret-options',
+        '#skip-meals-options',
+        '#body-pain-options',
+        '#training-days-options'
+      ];
+
+      singleOptionContainers.forEach(selector => {
+        const container = document.querySelector(selector);
+        if (container) {
+          const options = container.querySelectorAll('.option-item');
+          options.forEach(option => {
+            option.addEventListener('click', function() {
+              // 清除同组其他选中
+              options.forEach(opt => opt.classList.remove('selected'));
+              // 选中当前
+              this.classList.add('selected');
+            });
+          });
+        }
+      });
+
+      // 文本输入字符计数
+      document.getElementById('key-events').addEventListener('input', function() {
+        document.getElementById('char-count').textContent = this.value.length;
+      });
+
+      // 关闭问卷按钮
+      document.getElementById('questionnaire-close').addEventListener('click', function() {
+        if (validateQuestionnaire()) {
+          // 如果问卷已完成，允许关闭
+          document.getElementById('questionnaire-modal').style.display = 'none';
+        } else {
+          // 显示错误提示
+          document.getElementById('questionnaire-error').style.display = 'block';
+          document.getElementById('questionnaire-error').textContent = '请完成所有问题后再关闭';
+          setTimeout(() => {
+            document.getElementById('questionnaire-error').style.display = 'none';
+          }, 3000);
+        }
+      });
+    }
+
+    // 验证问卷是否完整
+    function validateQuestionnaire() {
+      // 1. 检查情绪多选题是否选了3个
+      const emotionCount = document.querySelectorAll('#emotion-options .option-item.selected').length;
+      if (emotionCount !== 3) {
+        return false;
+      }
+
+      // 2. 检查所有单选题是否已选
+      const singleChoiceSelectors = [
+        '#eating-regret-options',
+        '#skip-meals-options',
+        '#body-pain-options',
+        '#training-days-options'
+      ];
+
+      for (const selector of singleChoiceSelectors) {
+        const container = document.querySelector(selector);
+        if (container) {
+          const selected = container.querySelector('.option-item.selected');
+          if (!selected) {
+            return false;
+          }
+        }
+      }
+
+      // 3. 检查关键事件记录是否为空或超过300字（修改点：将100改为300）
+      const keyEvents = document.getElementById('key-events').value.trim();
+      if (keyEvents.length === 0 || keyEvents.length > 300) {
+        return false;
+      }
+
+      // 所有验证通过
+      return true;
+    }
+
+    // 收集问卷数据
+    function collectQuestionnaireData() {
+      // 情绪多选题
+      const selectedEmotions = Array.from(
+        document.querySelectorAll('#emotion-options .option-item.selected')
+      ).map(el => el.getAttribute('data-value'));
+
+      // 饮食行为评估
+      const eatingRegret = document.querySelector('#eating-regret-options .option-item.selected')?.getAttribute('data-value') || '';
+      const skipMeals = document.querySelector('#skip-meals-options .option-item.selected')?.getAttribute('data-value') || '';
+      const bodyPain = document.querySelector('#body-pain-options .option-item.selected')?.getAttribute('data-value') || '';
+
+      // 音乐干预反馈
+      const trainingDays = document.querySelector('#training-days-options .option-item.selected')?.getAttribute('data-value') || '';
+      const anxietyChange = document.getElementById('anxiety-change').value;
+
+      // 关键事件
+      const keyEvents = document.getElementById('key-events').value;
+
+      return {
+        emotionIntensity: document.getElementById('emotion-intensity').value,
+        selectedEmotions,
+        eatingRegret,
+        skipMeals,
+        bodyPain,
+        trainingDays,
+        anxietyChange,
+        keyEvents
+      };
+    }
+
+    // 生成问卷结果的Markdown文本
+    function generateQuestionnaireMarkdown(data) {
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      const weekNumber = Math.ceil(userInfo.day / 7);
+
+      return `## 第${weekNumber}次周反思总结 (${dateStr})
+
+### 一、情绪状态记录
+1. **整体情绪波动强度**: ${data.emotionIntensity}/10
+2. **最常体验的三种情绪**: ${data.selectedEmotions.join(', ')}
+
+### 二、饮食行为评估
+1. **无法停止进食或进食后懊悔次数**: ${data.eatingRegret}
+2. **跳过正餐或极端控制热量天数**: ${data.skipMeals}
+3. **因体型/体重感到痛苦的频率**: ${data.bodyPain}
+
+### 三、音乐干预反馈
+1. **完成音乐眼动训练天数**: ${data.trainingDays}
+2. **进食时焦虑程度变化**: ${data.anxietyChange}/7 (1=显著加剧, 7=显著缓解)
+
+### 四、关键事件记录
+${data.keyEvents}
+`;
+    }
+
+    // 保存问卷结果到Word文档
+    function saveQuestionnaireToWord(data) {
+      const markdownContent = generateQuestionnaireMarkdown(data);
+      const weekNumber = Math.ceil(userInfo.day / 7);
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>周反思总结 - ${userInfo.subjectId} - 第${weekNumber}次</title>
+          <style>
+            body { font-family: 'Microsoft YaHei', sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+            h1 { color: #2c3e50; text-align: center; }
+            h2 { color: #2980b9; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+            h3 { color: #3498db; }
+            .question { margin-bottom: 15px; }
+            .answer { margin-left: 20px; margin-bottom: 20px; }
+          </style>
+        </head>
+        <body>
+          <h1>周反思总结</h1>
+          <p><strong>被试ID</strong>: ${userInfo.subjectId}</p>
+          <p><strong>周次</strong>: 第${weekNumber}次</p>
+          <p><strong>提交日期</strong>: ${new Date().toLocaleString()}</p>
+
+          <h2>一、情绪状态记录</h2>
+          <div class="question">
+            <h3>1. 过去7天，您的整体情绪波动强度如何？</h3>
+            <div class="answer">${data.emotionIntensity}/10 (0=非常平静, 10=极度波动)</div>
+          </div>
+
+          <div class="question">
+            <h3>2. 过去一周，您最常体验的三种情绪是？</h3>
+            <div class="answer">${data.selectedEmotions.join(', ')}</div>
+          </div>
+
+          <h2>二、饮食行为评估</h2>
+          <div class="question">
+            <h3>1. 过去7天，您出现"无法停止进食或进食后强烈懊悔"的次数？</h3>
+            <div class="answer">${data.eatingRegret}</div>
+          </div>
+
+          <div class="question">
+            <h3>2. 您刻意跳过正餐或极端控制热量的天数为？</h3>
+            <div class="answer">${data.skipMeals}</div>
+          </div>
+
+          <div class="question">
+            <h3>3. 您因体型/体重感到痛苦的频率？</h3>
+            <div class="answer">${data.bodyPain}</div>
+          </div>
+
+          <h2>三、音乐干预反馈</h2>
+          <div class="question">
+            <h3>1. 您完成音乐眼动训练的天数？</h3>
+            <div class="answer">${data.trainingDays}</div>
+          </div>
+
+          <div class="question">
+            <h3>2. 音乐训练后，您在进食时的焦虑程度变化？</h3>
+            <div class="answer">${data.anxietyChange}/7 (1=显著加剧, 7=显著缓解)</div>
+          </div>
+
+          <h2>四、关键事件记录</h2>
+          <div class="question">
+            <h3>过去一周是否有事件(如社交压力、情绪冲击)显著影响您的情绪或进食？</h3>
+            <div class="answer">${data.keyEvents.replace(/\n/g, '<br>')}</div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob([htmlContent], { type: 'application/msword' });
+      saveAs(blob, `eye-${userInfo.subjectId.replace('EYE-', '')}-W${weekNumber}.doc`);
     }
 
     /* 生成图片列表 - 20张图片（001-020） */
@@ -1707,6 +2221,144 @@
       timeline: trials,
       randomize_order: false
     });
+
+    /* ==== 插入周反思提示（在所有7的倍数天显示） ==== */
+    const weekReflection = {
+      timeline: [
+        {
+          type: jsPsychHtmlKeyboardResponse,
+          stimulus: function() {
+            return `
+              <div class="centered-text">
+                <p class="reflection-invitation">我们想邀请您参与周反思总结</p>
+                <p style="margin-top:30px;">按任意键继续</p>
+              </div>
+            `;
+          },
+          choices: "ALL_KEYS"
+        },
+        {
+          type: jsPsychHtmlButtonResponse,
+          stimulus: '',
+          choices: [],
+          on_load: function() {
+            // 初始化问卷
+            initQuestionnaire();
+
+            // 显示问卷
+            document.getElementById('questionnaire-modal').style.display = 'flex';
+
+            // 提交问卷按钮事件
+            document.getElementById('submit-questionnaire').addEventListener('click', async function() {
+              const errorElement = document.getElementById('questionnaire-error');
+
+              // 验证问卷是否完整
+              if (!validateQuestionnaire()) {
+                errorElement.style.display = 'block';
+                errorElement.textContent = '请完成所有问题后再提交';
+                setTimeout(() => {
+                  errorElement.style.display = 'none';
+                }, 3000);
+                return;
+              }
+
+              // 收集问卷数据
+              const questionnaireData = collectQuestionnaireData();
+
+              // 生成Markdown格式的评论
+              const markdownContent = generateQuestionnaireMarkdown(questionnaireData);
+
+              try {
+                // 显示提交中状态
+                const submitButton = this;
+                submitButton.textContent = '提交中...';
+                submitButton.disabled = true;
+
+                // 获取或创建GitHub Issue
+                const issue = await getOrCreateIssue();
+
+                // 提交问卷到GitHub
+                await addIssueComment(issue.number, markdownContent);
+
+                // 提交成功，更新按钮
+                const buttonsContainer = document.getElementById('submit-buttons');
+                buttonsContainer.innerHTML = `
+                  <button class="save-button" id="save-questionnaire">保存问卷结果</button>
+                `;
+
+                // 保存问卷结果按钮事件
+                document.getElementById('save-questionnaire').addEventListener('click', function() {
+                  saveQuestionnaireToWord(questionnaireData);
+                  document.getElementById('questionnaire-modal').style.display = 'none';
+                  jsPsych.finishTrial();
+                });
+
+              } catch (error) {
+                console.error('问卷提交失败:', error);
+
+                // 提交失败，显示错误信息
+                errorElement.style.display = 'block';
+                errorElement.textContent = `提交失败: ${error.message}`;
+
+                // 更新按钮 - 添加本地保存和重试按钮
+                const buttonsContainer = document.getElementById('submit-buttons');
+                buttonsContainer.innerHTML = `
+                  <button class="login-button" id="retry-submit">重试上传</button>
+                  <button class="save-button" id="save-questionnaire">保存问卷到本地</button>
+                `;
+
+                // 重试按钮事件
+                document.getElementById('retry-submit').addEventListener('click', async function() {
+                  try {
+                    // 显示提交中状态
+                    const retryButton = this;
+                    retryButton.textContent = '提交中...';
+                    retryButton.disabled = true;
+
+                    // 获取或创建GitHub Issue
+                    const issue = await getOrCreateIssue();
+
+                    // 提交问卷到GitHub
+                    await addIssueComment(issue.number, markdownContent);
+
+                    // 提交成功，更新按钮
+                    buttonsContainer.innerHTML = `
+                      <button class="save-button" id="save-questionnaire">保存问卷结果</button>
+                    `;
+
+                    // 保存问卷结果按钮事件
+                    document.getElementById('save-questionnaire').addEventListener('click', function() {
+                      saveQuestionnaireToWord(questionnaireData);
+                      document.getElementById('questionnaire-modal').style.display = 'none';
+                      jsPsych.finishTrial();
+                    });
+
+                  } catch (retryError) {
+                    console.error('重试提交失败:', retryError);
+                    errorElement.style.display = 'block';
+                    errorElement.textContent = `重试失败: ${retryError.message}`;
+                    retryButton.textContent = '重试上传';
+                    retryButton.disabled = false;
+                  }
+                });
+
+                // 保存问卷结果按钮事件
+                document.getElementById('save-questionnaire').addEventListener('click', function() {
+                  saveQuestionnaireToWord(questionnaireData);
+                  document.getElementById('questionnaire-modal').style.display = 'none';
+                  jsPsych.finishTrial();
+                });
+              }
+            });
+          }
+        }
+      ],
+      // 所有7的倍数天都显示问卷
+      conditional_function: function() {
+        return userInfo && userInfo.day % 7 === 0;
+      }
+    };
+    timeline.push(weekReflection);
 
     /* ==== 数据处理和GitHub上传 ==== */
     const dataProcessingTrial = {
