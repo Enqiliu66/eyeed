@@ -1,15 +1,12 @@
 module.exports = async (req, res) => {
-  // 设置CORS头部
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // 处理预检请求
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // 验证环境变量
   const requiredEnvVars = ['GITHUB_TOKEN', 'GITHUB_REPO_OWNER', 'GITHUB_REPO_NAME'];
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
   
@@ -24,7 +21,6 @@ module.exports = async (req, res) => {
     const { action } = req.body;
     let Octokit;
     
-    // 动态导入 @octokit/rest 模块
     try {
       const octokitModule = await import('@octokit/rest');
       Octokit = octokitModule.Octokit;
@@ -96,15 +92,40 @@ module.exports = async (req, res) => {
           });
         }
 
-        const { data: file } = await octokit.repos.createOrUpdateFileContents({
-          owner: process.env.GITHUB_REPO_OWNER,
-          repo: process.env.GITHUB_REPO_NAME,
-          path: `data/${fileName}`,
-          message: `添加数据文件: ${fileName}`,
-          content: Buffer.from(content).toString('base64')
-        });
+        try {
+          // 尝试获取文件SHA（如果存在）
+          let sha = null;
+          try {
+            const { data } = await octokit.repos.getContent({
+              owner: process.env.GITHUB_REPO_OWNER,
+              repo: process.env.GITHUB_REPO_NAME,
+              path: `data/${fileName}`
+            });
+            sha = data.sha;
+          } catch (error) {
+            if (error.status !== 404) {
+              console.error('获取文件SHA失败:', error);
+            }
+          }
 
-        return res.json(file);
+          // 创建或更新文件
+          const { data: file } = await octokit.repos.createOrUpdateFileContents({
+            owner: process.env.GITHUB_REPO_OWNER,
+            repo: process.env.GITHUB_REPO_NAME,
+            path: `data/${fileName}`,
+            message: `添加数据文件: ${fileName}`,
+            content: Buffer.from(content).toString('base64'),
+            sha: sha // 如果文件存在，提供SHA
+          });
+
+          return res.json(file);
+        } catch (error) {
+          console.error('CSV上传失败:', error);
+          return res.status(500).json({
+            error: 'CSV上传失败',
+            message: error.message || error.toString()
+          });
+        }
       }
 
       default:
