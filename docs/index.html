@@ -289,6 +289,34 @@
       font-weight: 600;
     }
 
+    /* 新增：功能选择按钮 */
+    .function-select-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .function-button {
+      padding: 20px 40px;
+      font-size: 1.2rem;
+      border-radius: 12px;
+      border: none;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+    .experiment-button {
+      background: linear-gradient(90deg, #2980b9, #3498db);
+    }
+    .questionnaire-button {
+      background: linear-gradient(90deg, #27ae60, #2ecc71);
+    }
+    .function-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
     /* ==== 数据报告样式 ==== */
     .data-report {
       max-width: 800px;
@@ -765,6 +793,65 @@
       font-size: 1.2rem;
       margin-top: 30px;
     }
+
+    /* 新增：问卷成功提示 */
+    .questionnaire-success {
+      color: #27ae60;
+      margin-top: 10px;
+      text-align: center;
+      display: none;
+    }
+
+    /* ==== 新添加的按钮容器样式 ==== */
+    .reflection-button-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+    .reflection-button {
+      min-width: 250px;
+      padding: 18px 30px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+    .questionnaire-button {
+      background: linear-gradient(90deg, #27ae60, #2ecc71);
+    }
+    .questionnaire-button:hover {
+      background: linear-gradient(90deg, #219653, #27ad60);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+    .skip-button {
+      background: linear-gradient(90deg, #3498db, #2980b9);
+    }
+    .skip-button:hover {
+      background: linear-gradient(90deg, #2980b9, #2573a5);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 新增：关闭提示 */
+    .close-hint {
+      color: #888;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 15px;
+      font-style: italic;
+    }
+
+    /* 新增：调整提示文本样式 */
+    .adjustment-hint {
+      font-size: 0.9rem;
+      color: #888;
+      margin-top: 5px;
+      font-style: italic;
+    }
   </style>
 </head>
 
@@ -926,9 +1013,7 @@
 
         <div class="question-item">
           <h4>过去一周是否有事件(如社交压力、情绪冲击)显著影响您的情绪或进食？请简述：</h4>
-          <!-- 修改点：将maxlength从100改为300 -->
           <textarea class="text-input" id="key-events" placeholder="请描述具体事件（限300字）..." maxlength="300"></textarea>
-          <!-- 修改点：将100改为300 -->
           <div style="text-align:right;font-size:0.8rem;color:#777;">
             <span id="char-count">0</span>/300 字符
           </div>
@@ -939,8 +1024,18 @@
         请完成所有问题后再提交
       </div>
 
+      <!-- 新增：问卷成功提示 -->
+      <div class="questionnaire-success" id="questionnaire-success">
+        问卷提交成功！
+      </div>
+
       <div class="questionnaire-buttons" id="submit-buttons">
         <button class="login-button" id="submit-questionnaire">提交问卷</button>
+      </div>
+
+      <!-- 新增：关闭提示 -->
+      <div class="close-hint">
+        问卷完成后，点击右上角关闭按钮返回主界面
       </div>
     </div>
   </div>
@@ -1318,9 +1413,8 @@
 
     // 初始化问卷
     function initQuestionnaire() {
-      // 设置问卷周次（每7天为一次）
-      const weekNumber = Math.ceil(userInfo.day / 7);
-      document.getElementById('questionnaire-week').textContent = weekNumber;
+      // 设置问卷周次（使用实际问卷填写次数）
+      document.getElementById('questionnaire-week').textContent = userInfo.weekCount;
 
       // 情绪多选处理
       const emotionOptions = document.querySelectorAll('#emotion-options .option-item');
@@ -1377,19 +1471,10 @@
         document.getElementById('char-count').textContent = this.value.length;
       });
 
-      // 关闭问卷按钮
+      // 关闭问卷按钮 - 修改：关闭后刷新页面
       document.getElementById('questionnaire-close').addEventListener('click', function() {
-        if (validateQuestionnaire()) {
-          // 如果问卷已完成，允许关闭
-          document.getElementById('questionnaire-modal').style.display = 'none';
-        } else {
-          // 显示错误提示
-          document.getElementById('questionnaire-error').style.display = 'block';
-          document.getElementById('questionnaire-error').textContent = '请完成所有问题后再关闭';
-          setTimeout(() => {
-            document.getElementById('questionnaire-error').style.display = 'none';
-          }, 3000);
-        }
+        document.getElementById('questionnaire-modal').style.display = 'none';
+        location.reload(); // 刷新页面回到功能选择界面
       });
     }
 
@@ -1464,9 +1549,8 @@
     function generateQuestionnaireMarkdown(data) {
       const now = new Date();
       const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-      const weekNumber = Math.ceil(userInfo.day / 7);
 
-      return `## 第${weekNumber}次周反思总结 (${dateStr})
+      return `## 第${userInfo.weekCount}次周反思总结 (${dateStr})
 
 ### 一、情绪状态记录
 1. **整体情绪波动强度**: ${data.emotionIntensity}/10
@@ -1489,13 +1573,12 @@ ${data.keyEvents}
     // 保存问卷结果到Word文档
     function saveQuestionnaireToWord(data) {
       const markdownContent = generateQuestionnaireMarkdown(data);
-      const weekNumber = Math.ceil(userInfo.day / 7);
       const htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="UTF-8">
-          <title>周反思总结 - ${userInfo.subjectId} - 第${weekNumber}次</title>
+          <title>周反思总结 - ${userInfo.subjectId} - 第${userInfo.weekCount}次</title>
           <style>
             body { font-family: 'Microsoft YaHei', sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
             h1 { color: #2c3e50; text-align: center; }
@@ -1508,7 +1591,7 @@ ${data.keyEvents}
         <body>
           <h1>周反思总结</h1>
           <p><strong>被试ID</strong>: ${userInfo.subjectId}</p>
-          <p><strong>周次</strong>: 第${weekNumber}次</p>
+          <p><strong>周次</strong>: 第${userInfo.weekCount}次</p>
           <p><strong>提交日期</strong>: ${new Date().toLocaleString()}</p>
 
           <h2>一、情绪状态记录</h2>
@@ -1559,7 +1642,7 @@ ${data.keyEvents}
       `;
 
       const blob = new Blob([htmlContent], { type: 'application/msword' });
-      saveAs(blob, `eye-${userInfo.subjectId.replace('EYE-', '')}-W${weekNumber}.doc`);
+      saveAs(blob, `eye-${userInfo.subjectId.replace('EYE-', '')}-W${userInfo.weekCount}.doc`);
     }
 
     /* 生成图片列表 - 20张图片（001-020） */
@@ -1587,125 +1670,233 @@ ${data.keyEvents}
     const loginScreen = {
       type: jsPsychHtmlButtonResponse,
       stimulus: function() {
-        // 获取当前被试的天数信息
-        let dayInfo = "";
-        const subjectIdEl = document.getElementById('subject-id');
-        if (subjectIdEl && subjectIdEl.value) {
-          const subjectId = subjectIdEl.value;
-          const storedDay = localStorage.getItem(`day_${subjectId}`);
-          const currentDay = storedDay ? parseInt(storedDay) + 1 : 1;
-          dayInfo = `<div class="day-display">这是您的第 <span>${currentDay}</span> 天实验</div>`;
-        }
-
         return `
           <div class="login-container">
-            <h2>实验用户登录</h2>
-            <div class="form-group">
-              <label for="subject-id">被试ID</label>
-              <select id="subject-id">
-                <option value="">请选择被试ID</option>
-                ${Array.from({length: 21}, (_, i) =>
-                  `<option value="EYE-${(i+1).toString().padStart(3, '0')}">EYE-${(i+1).toString().padStart(3, '0')}</option>`
-                ).join('')}
-              </select>
+            <h2>实验系统</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 30px; color: #555;">请选择您要进行的操作</p>
+
+            <div class="function-select-container">
+              <button class="function-button experiment-button" id="start-experiment">进入实验</button>
+              <button class="function-button questionnaire-button" id="start-questionnaire">填写周反思总结</button>
             </div>
-            ${dayInfo}
-            <div class="form-group">
-              <label for="gender">性别</label>
-              <select id="gender">
-                <option value="">请选择性别</option>
-                <option value="男">男</option>
-                <option value="女">女</option>
-                <option value="其他">其他</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="age">年龄</label>
-              <input type="number" id="age" min="18" max="60" placeholder="请输入年龄">
-            </div>
-            <button class="login-button" id="login-btn">开始实验</button>
-            <div id="login-status" style="margin-top: 15px;"></div>
           </div>
         `;
       },
       choices: [],
       on_load: function() {
-        // 监听被试ID变化，更新天数显示并自动填充用户信息
-        document.getElementById('subject-id').addEventListener('change', function() {
-          const subjectId = this.value;
-          if (subjectId) {
-            const storedDay = localStorage.getItem(`day_${subjectId}`);
-            const currentDay = storedDay ? parseInt(storedDay) + 1 : 1;
+        // 进入实验按钮
+        document.getElementById('start-experiment').addEventListener('click', function() {
+          // 显示登录表单
+          document.querySelector('.jspsych-content').innerHTML = `
+            <div class="login-container">
+              <h2>实验用户登录</h2>
+              <div class="form-group">
+                <label for="subject-id">被试ID</label>
+                <select id="subject-id">
+                  <option value="">请选择被试ID</option>
+                  ${Array.from({length: 21}, (_, i) =>
+                    `<option value="EYE-${(i+1).toString().padStart(3, '0')}">EYE-${(i+1).toString().padStart(3, '0')}</option>`
+                  ).join('')}
+                </select>
+              </div>
+              <div id="day-info"></div>
+              <div class="form-group">
+                <label for="gender">性别</label>
+                <select id="gender">
+                  <option value="">请选择性别</option>
+                  <option value="男">男</option>
+                  <option value="女">女</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="age">年龄</label>
+                <input type="number" id="age" min="18" max="60" placeholder="请输入年龄">
+              </div>
+              <button class="login-button" id="login-btn">开始实验</button>
+              <div id="login-status" style="margin-top: 15px;"></div>
+            </div>
+          `;
 
-            // 创建或更新天数显示
-            let dayDisplay = document.querySelector('.day-display');
-            if (!dayDisplay) {
-              dayDisplay = document.createElement('div');
-              dayDisplay.className = 'day-display';
-              document.querySelector('.login-container').insertBefore(dayDisplay, document.querySelector('.form-group:last-child'));
-            }
-            dayDisplay.innerHTML = `这是您的第 <span>${currentDay}</span> 天实验`;
+          // 监听被试ID变化，更新天数显示
+          document.getElementById('subject-id').addEventListener('change', function() {
+            const subjectId = this.value;
+            if (subjectId) {
+              const storedDay = localStorage.getItem(`day_${subjectId}`);
+              const currentDay = storedDay ? parseInt(storedDay) + 1 : 1;
 
-            // 尝试获取存储的用户信息并自动填充
-            const userData = localStorage.getItem(`user_${subjectId}`);
-            if (userData) {
-              try {
-                const { gender, age } = JSON.parse(userData);
-                document.getElementById('gender').value = gender;
-                document.getElementById('age').value = age;
-              } catch (e) {
-                console.error('解析用户信息失败', e);
+              const dayInfoEl = document.getElementById('day-info');
+              dayInfoEl.innerHTML = `
+                <div class="form-group">
+                  <label for="day-input">实验天数</label>
+                  <input type="number" id="day-input" min="1" max="30" value="${currentDay}">
+                  <p class="adjustment-hint">系统读取天数可能有误，可根据实验情况调整</p>
+                </div>
+              `;
+
+              // 尝试获取存储的用户信息并自动填充
+              const userData = localStorage.getItem(`user_${subjectId}`);
+              if (userData) {
+                try {
+                  const { gender, age } = JSON.parse(userData);
+                  document.getElementById('gender').value = gender;
+                  document.getElementById('age').value = age;
+                } catch (e) {
+                  console.error('解析用户信息失败', e);
+                }
               }
             }
-          }
+          });
+
+          // 登录按钮事件
+          document.getElementById('login-btn').addEventListener('click', function() {
+            const subjectId = document.getElementById('subject-id').value;
+            const gender = document.getElementById('gender').value;
+            const age = document.getElementById('age').value;
+            const dayInput = document.getElementById('day-input');
+            const statusEl = document.getElementById('login-status');
+
+            if (!subjectId) {
+              statusEl.innerHTML = '<p style="color: #e74c3c;">请选择被试ID</p>';
+              return;
+            }
+            if (!gender) {
+              statusEl.innerHTML = '<p style="color: #e74c3c;">请选择性别</p>';
+              return;
+            }
+            if (!age) {
+              statusEl.innerHTML = '<p style="color: #e74c3c;">请输入年龄</p>';
+              return;
+            }
+            if (!dayInput) {
+              statusEl.innerHTML = '<p style="color: #e74c3c;">请输入实验天数</p>';
+              return;
+            }
+
+            // 获取用户输入的天数
+            const day = parseInt(dayInput.value);
+
+            // 保存用户信息
+            userInfo = {
+              subjectId,
+              day,
+              gender,
+              age: parseInt(age)
+            };
+
+            // 存储用户信息（性别和年龄）
+            localStorage.setItem(`user_${subjectId}`, JSON.stringify({ gender, age }));
+            // 更新实验天数记录（注意：这里存储的是当前实验天数，所以下次登录时会在当前天数基础上加1）
+            localStorage.setItem(`day_${subjectId}`, day.toString());
+
+            // 显示成功信息
+            statusEl.innerHTML = '<p style="color: #27ae60;">验证通过，正在进入实验...</p>';
+
+            // 继续实验流程
+            setTimeout(() => {
+              jsPsych.finishTrial();
+            }, 1000);
+          });
         });
 
-        document.getElementById('login-btn').addEventListener('click', function() {
-          const subjectId = document.getElementById('subject-id').value;
-          const gender = document.getElementById('gender').value;
-          const age = document.getElementById('age').value;
-          const statusEl = document.getElementById('login-status');
+        // 填写问卷按钮
+        document.getElementById('start-questionnaire').addEventListener('click', function() {
+          // 显示问卷用户选择表单
+          document.querySelector('.jspsych-content').innerHTML = `
+            <div class="login-container">
+              <h2>填写周反思总结</h2>
+              <div class="form-group">
+                <label for="questionnaire-subject-id">被试ID</label>
+                <select id="questionnaire-subject-id">
+                  <option value="">请选择被试ID</option>
+                  ${Array.from({length: 21}, (_, i) =>
+                    `<option value="EYE-${(i+1).toString().padStart(3, '0')}">EYE-${(i+1).toString().padStart(3, '0')}</option>`
+                  ).join('')}
+                </select>
+              </div>
+              <div id="questionnaire-day-info"></div>
+              <button class="login-button" id="questionnaire-login-btn">开始填写</button>
+              <div id="questionnaire-status" style="margin-top: 15px;"></div>
+            </div>
+          `;
 
-          if (!subjectId) {
-            statusEl.innerHTML = '<p style="color: #e74c3c;">请选择被试ID</p>';
-            return;
-          }
-          if (!gender) {
-            statusEl.innerHTML = '<p style="color: #e74c3c;">请选择性别</p>';
-            return;
-          }
-          if (!age) {
-            statusEl.innerHTML = '<p style="color: #e74c3c;">请输入年龄</p>';
-            return;
-          }
+          // 监听被试ID变化，更新天数显示
+          document.getElementById('questionnaire-subject-id').addEventListener('change', function() {
+            const subjectId = this.value;
+            if (subjectId) {
+              const storedDay = localStorage.getItem(`day_${subjectId}`);
+              const currentDay = storedDay ? parseInt(storedDay) : 0;
 
-          // 从localStorage获取当前天数
-          const storedDay = localStorage.getItem(`day_${subjectId}`);
-          const day = storedDay ? parseInt(storedDay) + 1 : 1;
+              // 获取问卷填写次数
+              const storedWeekCount = localStorage.getItem(`weekCount_${subjectId}`);
+              const weekCount = storedWeekCount ? parseInt(storedWeekCount) : 1;
 
-          // 保存用户信息
-          userInfo = {
-            subjectId,
-            day,
-            gender,
-            age: parseInt(age)
-          };
+              const dayInfoEl = document.getElementById('questionnaire-day-info');
+              dayInfoEl.innerHTML = `
+                <div class="day-display">您已完成 <span>${currentDay}</span> 天实验</div>
+                <div class="form-group">
+                  <label for="week-input">周反思总结次数</label>
+                  <input type="number" id="week-input" min="1" max="10" value="${weekCount}">
+                  <p class="adjustment-hint">系统读取次数可能有误，可根据实验情况调整</p>
+                </div>
+              `;
 
-          // 存储用户信息（性别和年龄）
-          localStorage.setItem(`user_${subjectId}`, JSON.stringify({ gender, age }));
+              // 设置用户信息（包含问卷周次）
+              userInfo = {
+                subjectId: subjectId,
+                day: currentDay,
+                weekCount: weekCount  // 存储当前周次
+              };
+            }
+          });
 
-          // 显示成功信息
-          statusEl.innerHTML = '<p style="color: #27ae60;">验证通过，正在进入实验...</p>';
+          // 问卷登录按钮事件
+          document.getElementById('questionnaire-login-btn').addEventListener('click', function() {
+            const subjectId = document.getElementById('questionnaire-subject-id').value;
+            const weekInput = document.getElementById('week-input');
+            const statusEl = document.getElementById('questionnaire-status');
 
-          // 继续实验流程
-          setTimeout(() => {
-            jsPsych.finishTrial();
-          }, 1000);
+            if (!subjectId) {
+              statusEl.innerHTML = '<p style="color: #e74c3c;">请选择被试ID</p>';
+              return;
+            }
+            if (!weekInput) {
+              statusEl.innerHTML = '<p style="color: #e74c3c;">请输入周反思总结次数</p>';
+              return;
+            }
+
+            // 从localStorage获取当前天数
+            const storedDay = localStorage.getItem(`day_${subjectId}`);
+            const day = storedDay ? parseInt(storedDay) : 0;
+
+            // 获取用户输入的周次
+            const weekCount = parseInt(weekInput.value);
+
+            // 设置用户信息
+            userInfo = {
+              subjectId,
+              day,
+              weekCount
+            };
+
+            // 更新问卷周次记录，这样下次填写问卷时会在当前周次基础上加1
+            localStorage.setItem(`weekCount_${subjectId}`, weekCount.toString());
+
+            // 显示成功信息
+            statusEl.innerHTML = '<p style="color: #27ae60;">准备就绪，正在加载问卷...</p>';
+
+            // 加载问卷
+            setTimeout(() => {
+              // 初始化问卷
+              initQuestionnaire();
+              // 显示问卷
+              document.getElementById('questionnaire-modal').style.display = 'flex';
+            }, 1000);
+          });
         });
       }
     };
 
-    /* ==== 实验流程 ==== */
     const timeline = [];
 
     // 添加登录页面
@@ -1939,7 +2130,6 @@ ${data.keyEvents}
     const trials = [];
     const centralFixation = document.getElementById('central-fixation');
     const gazePoint = document.getElementById('gaze-point');
-    let gazeUpdateInterval;
 
     // 存储眼动数据
     const gazeData = [];
@@ -2191,10 +2381,6 @@ ${data.keyEvents}
           if (this.interval) {
             clearInterval(this.interval);
           }
-          if (gazeUpdateInterval) {
-            clearInterval(gazeUpdateInterval);
-            gazeUpdateInterval = null;
-          }
           gazePoint.style.display = 'none';
         }
       };
@@ -2221,144 +2407,6 @@ ${data.keyEvents}
       timeline: trials,
       randomize_order: false
     });
-
-    /* ==== 插入周反思提示（在所有7的倍数天显示） ==== */
-    const weekReflection = {
-      timeline: [
-        {
-          type: jsPsychHtmlKeyboardResponse,
-          stimulus: function() {
-            return `
-              <div class="centered-text">
-                <p class="reflection-invitation">我们想邀请您参与周反思总结</p>
-                <p style="margin-top:30px;">按任意键继续</p>
-              </div>
-            `;
-          },
-          choices: "ALL_KEYS"
-        },
-        {
-          type: jsPsychHtmlButtonResponse,
-          stimulus: '',
-          choices: [],
-          on_load: function() {
-            // 初始化问卷
-            initQuestionnaire();
-
-            // 显示问卷
-            document.getElementById('questionnaire-modal').style.display = 'flex';
-
-            // 提交问卷按钮事件
-            document.getElementById('submit-questionnaire').addEventListener('click', async function() {
-              const errorElement = document.getElementById('questionnaire-error');
-
-              // 验证问卷是否完整
-              if (!validateQuestionnaire()) {
-                errorElement.style.display = 'block';
-                errorElement.textContent = '请完成所有问题后再提交';
-                setTimeout(() => {
-                  errorElement.style.display = 'none';
-                }, 3000);
-                return;
-              }
-
-              // 收集问卷数据
-              const questionnaireData = collectQuestionnaireData();
-
-              // 生成Markdown格式的评论
-              const markdownContent = generateQuestionnaireMarkdown(questionnaireData);
-
-              try {
-                // 显示提交中状态
-                const submitButton = this;
-                submitButton.textContent = '提交中...';
-                submitButton.disabled = true;
-
-                // 获取或创建GitHub Issue
-                const issue = await getOrCreateIssue();
-
-                // 提交问卷到GitHub
-                await addIssueComment(issue.number, markdownContent);
-
-                // 提交成功，更新按钮
-                const buttonsContainer = document.getElementById('submit-buttons');
-                buttonsContainer.innerHTML = `
-                  <button class="save-button" id="save-questionnaire">保存问卷结果</button>
-                `;
-
-                // 保存问卷结果按钮事件
-                document.getElementById('save-questionnaire').addEventListener('click', function() {
-                  saveQuestionnaireToWord(questionnaireData);
-                  document.getElementById('questionnaire-modal').style.display = 'none';
-                  jsPsych.finishTrial();
-                });
-
-              } catch (error) {
-                console.error('问卷提交失败:', error);
-
-                // 提交失败，显示错误信息
-                errorElement.style.display = 'block';
-                errorElement.textContent = `提交失败: ${error.message}`;
-
-                // 更新按钮 - 添加本地保存和重试按钮
-                const buttonsContainer = document.getElementById('submit-buttons');
-                buttonsContainer.innerHTML = `
-                  <button class="login-button" id="retry-submit">重试上传</button>
-                  <button class="save-button" id="save-questionnaire">保存问卷到本地</button>
-                `;
-
-                // 重试按钮事件
-                document.getElementById('retry-submit').addEventListener('click', async function() {
-                  try {
-                    // 显示提交中状态
-                    const retryButton = this;
-                    retryButton.textContent = '提交中...';
-                    retryButton.disabled = true;
-
-                    // 获取或创建GitHub Issue
-                    const issue = await getOrCreateIssue();
-
-                    // 提交问卷到GitHub
-                    await addIssueComment(issue.number, markdownContent);
-
-                    // 提交成功，更新按钮
-                    buttonsContainer.innerHTML = `
-                      <button class="save-button" id="save-questionnaire">保存问卷结果</button>
-                    `;
-
-                    // 保存问卷结果按钮事件
-                    document.getElementById('save-questionnaire').addEventListener('click', function() {
-                      saveQuestionnaireToWord(questionnaireData);
-                      document.getElementById('questionnaire-modal').style.display = 'none';
-                      jsPsych.finishTrial();
-                    });
-
-                  } catch (retryError) {
-                    console.error('重试提交失败:', retryError);
-                    errorElement.style.display = 'block';
-                    errorElement.textContent = `重试失败: ${retryError.message}`;
-                    retryButton.textContent = '重试上传';
-                    retryButton.disabled = false;
-                  }
-                });
-
-                // 保存问卷结果按钮事件
-                document.getElementById('save-questionnaire').addEventListener('click', function() {
-                  saveQuestionnaireToWord(questionnaireData);
-                  document.getElementById('questionnaire-modal').style.display = 'none';
-                  jsPsych.finishTrial();
-                });
-              }
-            });
-          }
-        }
-      ],
-      // 所有7的倍数天都显示问卷
-      conditional_function: function() {
-        return userInfo && userInfo.day % 7 === 0;
-      }
-    };
-    timeline.push(weekReflection);
 
     /* ==== 数据处理和GitHub上传 ==== */
     const dataProcessingTrial = {
@@ -2578,6 +2626,88 @@ ${data.keyEvents}
 
     /* ==== 运行实验 ==== */
     jsPsych.run(timeline);
+
+    /* ==== 问卷提交处理 ==== */
+    document.addEventListener('click', function(e) {
+      if (e.target.id === 'submit-questionnaire') {
+        const errorElement = document.getElementById('questionnaire-error');
+        const successElement = document.getElementById('questionnaire-success');
+
+        // 验证问卷是否完整
+        if (!validateQuestionnaire()) {
+          errorElement.style.display = 'block';
+          successElement.style.display = 'none';
+          setTimeout(() => {
+            errorElement.style.display = 'none';
+          }, 3000);
+          return;
+        }
+
+        // 收集问卷数据
+        const questionnaireData = collectQuestionnaireData();
+
+        // 生成Markdown格式的评论
+        const markdownContent = generateQuestionnaireMarkdown(questionnaireData);
+
+        // 显示提交中状态
+        const submitButton = e.target;
+        submitButton.textContent = '提交中...';
+        submitButton.disabled = true;
+
+        // 隐藏之前的错误信息
+        errorElement.style.display = 'none';
+        successElement.style.display = 'none';
+
+        // 提交问卷到GitHub
+        getOrCreateIssue()
+          .then(issue => {
+            return addIssueComment(issue.number, markdownContent);
+          })
+          .then(() => {
+            // 提交成功，更新按钮
+            const buttonsContainer = document.getElementById('submit-buttons');
+            buttonsContainer.innerHTML = `
+              <button class="save-button" id="save-questionnaire">保存问卷结果</button>
+            `;
+
+            // 显示成功提示
+            successElement.style.display = 'block';
+
+            // 更新周次计数器
+            const newWeekCount = userInfo.weekCount + 1;
+            localStorage.setItem(`weekCount_${userInfo.subjectId}`, newWeekCount);
+            userInfo.weekCount = newWeekCount;
+
+            // 保存问卷结果按钮事件
+            document.getElementById('save-questionnaire').addEventListener('click', function() {
+              saveQuestionnaireToWord(questionnaireData);
+            });
+          })
+          .catch(error => {
+            console.error('问卷提交失败:', error);
+
+            // 提交失败，显示错误信息
+            errorElement.style.display = 'block';
+            errorElement.textContent = `提交失败: ${error.message}`;
+            successElement.style.display = 'none';
+
+            // 更新按钮 - 添加本地保存按钮
+            const buttonsContainer = document.getElementById('submit-buttons');
+            buttonsContainer.innerHTML = `
+              <button class="save-button" id="save-questionnaire">保存问卷到本地</button>
+            `;
+
+            // 保存问卷结果按钮事件
+            document.getElementById('save-questionnaire').addEventListener('click', function() {
+              saveQuestionnaireToWord(questionnaireData);
+            });
+
+            // 恢复提交按钮状态
+            submitButton.textContent = '提交问卷';
+            submitButton.disabled = false;
+          });
+      }
+    });
   </script>
 </body>
 </html>
