@@ -1,0 +1,2 @@
+var jsPsychCallFunction=function(n){"use strict";const t={name:"call-function",parameters:{func:{type:n.ParameterType.FUNCTION,pretty_name:"Function",default:void 0},async:{type:n.ParameterType.BOOL,pretty_name:"Asynchronous",default:!1}}};class s{constructor(n){this.jsPsych=n}trial(n,t){var s;const e=()=>{var n={value:s};this.jsPsych.finishTrial(n)};if(t.async){t.func((function(n){s=n,e()}))}else s=t.func(),e()}}return s.info=t,s}(jsPsychModule);
+//# sourceMappingURL=index.browser.min.js.map
