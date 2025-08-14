@@ -8,22 +8,22 @@
   <!-- 引入 Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
 
-  <!-- jsPsych 相关脚本 -->
+  <!-- jsPsych 相关脚本（本地化版本） -->
   <script src="./webgazer.js"></script>
-  <script src="https://unpkg.com/jspsych@8.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-preload@2.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-audio-keyboard-response@2.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-webgazer-init-camera@2.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-webgazer-calibrate@2.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-webgazer-validate@2.0.0"></script>
-  <script src="https://unpkg.com/@jspsych/extension-webgazer@1.0.3"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-call-function@1.0.0"></script>
+  <script src="./lib/jspsych@8.0.0.js"></script>
+  <script src="./lib/plugin-preload@2.0.0.js"></script>
+  <script src="./lib/plugin-html-button-response@2.0.0.js"></script>
+  <script src="./lib/plugin-html-keyboard-response@2.0.0.js"></script>
+  <script src="./lib/plugin-image-keyboard-response@2.0.0.js"></script>
+  <script src="./lib/plugin-audio-keyboard-response@2.0.0.js"></script>
+  <script src="./lib/plugin-webgazer-init-camera@2.0.0.js"></script>
+  <script src="./lib/plugin-webgazer-calibrate@2.0.0.js"></script>
+  <script src="./lib/plugin-webgazer-validate@2.0.0.js"></script>
+  <script src="./lib/extension-webgazer@1.0.3.js"></script>
+  <script src="./lib/plugin-call-function@1.0.0.js"></script>
 
-  <!-- 引入FileSaver.js用于保存文件 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <!-- 引入FileSaver.js用于保存文件（本地化版本） -->
+  <script src="./lib/FileSaver.min@2.0.5.js"></script>
 
   <style>
     /* ==== 全局样式 ==== */
@@ -1786,8 +1786,6 @@ ${data.keyEvents}
 
             // 存储用户信息（性别和年龄）
             localStorage.setItem(`user_${subjectId}`, JSON.stringify({ gender, age }));
-            // 更新实验天数记录（注意：这里存储的是当前实验天数，所以下次登录时会在当前天数基础上加1）
-            localStorage.setItem(`day_${subjectId}`, day.toString());
 
             // 显示成功信息
             statusEl.innerHTML = '<p style="color: #27ae60;">验证通过，正在进入实验...</p>';
@@ -2475,12 +2473,12 @@ ${data.keyEvents}
             statusMessage.textContent = "上传CSV文件到GitHub的data目录...";
             await uploadCSVToGitHub(csvContent, fileName);
 
-            // 5. 更新天数记录
+            // 5. 更新天数记录（只有成功完成实验才更新天数）
             localStorage.setItem(`day_${userInfo.subjectId}`, userInfo.day.toString());
 
             // 6. 更新状态显示
             statusMessage.className = "status-message status-success";
-            statusMessage.textContent = "数据上传成功！";
+            statusMessage.textContent = "数据上传成功！实验天数已更新！";
 
             // 7. 显示数据报告和操作按钮
             const content = `
@@ -2599,7 +2597,7 @@ ${data.keyEvents}
             }
           });
 
-          // 保存数据按钮 - 修改：添加天数更新逻辑
+          // 保存数据按钮
           document.getElementById('save-btn').addEventListener('click', function() {
             // 创建CSV格式的眼动数据
             let csvContent = generateCSVData(gazeData);
@@ -2607,7 +2605,7 @@ ${data.keyEvents}
             // 保存到本地
             saveCSVToLocal(csvContent);
 
-            // 修改：更新实验天数（即使上传失败但成功保存）
+            // 更新实验天数（保存到本地也视为完成实验）
             localStorage.setItem(`day_${userInfo.subjectId}`, userInfo.day.toString());
 
             // 提示用户
