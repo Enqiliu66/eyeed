@@ -38,7 +38,7 @@ jobs:
           token: ${{ secrets.GITEE_TOKEN }}
 
       - name: 部署Gitee Pages
-        uses: yanglbme/gitee-pages-action@v4
+        uses: yanglbme/gitee-pages-action@v3
         with:
           gitee-repo: ${{ secrets.GITEE_USER }}/${{ github.repository_name }}
           branch: main
