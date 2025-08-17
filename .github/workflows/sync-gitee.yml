@@ -16,13 +16,54 @@ jobs:
 
       - name: 配置Gitee远程仓库
         run: |
+          # 配置Git用户信息
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          # 引用Secret中的Gitee用户名，而非硬编码
-          git remote add gitee https://eyeed_0:68067b2feff3ac940af26b87410135c1@gitee.com/eyeed_0/eyeed.git
+          
+          # 打印所有关键变量值（用于调试）
+          echo "===== 变量调试信息 ====="
+          echo "1. GITEE_USER (从secrets获取): ===${{ secrets.GITEE_USER }}==="
+          echo "2. GITEE_TOKEN (从secrets获取，部分隐藏): ===${{ secrets.GITEE_TOKEN && '***' || '未设置' }}==="
+          echo "3. github.repository_name (仓库名): ===${{ github.repository_name }}==="
+          echo "4. github.repository (完整路径): ===${{ github.repository }}==="
+          echo "========================"
+          
+          # 手动提取变量并验证
+          echo "===== 变量提取验证 ====="
+          GITEE_USER="${{ secrets.GITEE_USER }}"
+          GITEE_TOKEN="${{ secrets.GITEE_TOKEN }}"
+          REPO_NAME="${{ github.repository_name }}"
+          
+          echo "1. 提取的GITEE_USER: ===$GITEE_USER==="
+          echo "2. 提取的REPO_NAME: ===$REPO_NAME==="
+          echo "========================"
+          
+          # 逐步拼接URL并打印过程
+          echo "===== URL拼接过程 ====="
+          echo "基础路径: https://[GITEE_USER]:[GITEE_TOKEN]@gitee.com/[GITEE_USER]/[REPO_NAME].git"
+          echo "替换GITEE_USER后: https://$GITEE_USER:[GITEE_TOKEN]@gitee.com/$GITEE_USER/[REPO_NAME].git"
+          echo "替换REPO_NAME后: https://$GITEE_USER:[GITEE_TOKEN]@gitee.com/$GITEE_USER/$REPO_NAME.git"
+          
+          # 构建完整URL
+          FULL_URL="https://$GITEE_USER:$GITEE_TOKEN@gitee.com/$GITEE_USER/$REPO_NAME.git"
+          echo "完整URL: ===$FULL_URL==="
+          echo "========================"
+          
+          # 配置并验证远程仓库
+          echo "===== 远程仓库配置 ====="
+          # 先删除可能存在的旧配置
+          git remote rm gitee 2>/dev/null || true
+          # 添加新的远程仓库配置
+          git remote add gitee "$FULL_URL"
+          # 验证远程仓库URL是否正确
+          echo "实际配置的远程URL: ===$(git remote get-url gitee)==="
+          echo "========================"
+          
+          # 推送代码到Gitee
+          echo "开始推送到Gitee..."
           git push -f gitee main
+          echo "推送完成"
         env:
-          # 从Secret中获取用户名，不再硬编码
           GITEE_USER: ${{ secrets.GITEE_USER }}
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
 
@@ -37,8 +78,16 @@ jobs:
           ref: main
           token: ${{ secrets.GITEE_TOKEN }}
 
+      - name: 部署Gitee Pages (调试信息)
+        run: |
+          echo "===== 部署步骤变量 ====="
+          echo "GITEE_USER: ===${{ secrets.GITEE_USER }}==="
+          echo "仓库名: ===${{ github.repository_name }}==="
+          echo "部署目标: ===${{ secrets.GITEE_USER }}/${{ github.repository_name }}==="
+          echo "========================"
+          
       - name: 部署Gitee Pages
-        uses: yanglbme/gitee-pages-action@v3
+        uses: yanglbme/gitee-pages-action@v3  # 注意：v4版本不存在，使用v3
         with:
           gitee-repo: ${{ secrets.GITEE_USER }}/${{ github.repository_name }}
           branch: main
