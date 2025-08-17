@@ -50,7 +50,7 @@ jobs:
     steps:
       # 第一步：正确检出Gitee代码（使用官方checkout Action）
       - name: 检出Gitee代码
-        uses: actions/checkout@v1.4.2  # 检出代码必须用actions/checkout，而非部署Action
+        uses: yanglbme/gitee-pages-action@v1.4.2  # 检出代码必须用actions/checkout，而非部署Action
         with:
           gitee-repo: ${{ secrets.GITEE_USER }}/$(echo "${{ github.repository }}" | cut -d '/' -f 2)
           branch: main
