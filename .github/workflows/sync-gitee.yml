@@ -1,56 +1,75 @@
 name: 自动同步到Gitee & 部署Pages
 on:
   push:
-    branches: [main]  # 代码推送到main分支时触发
+    branches: [main]
   schedule:
-    - cron: '0 8 * * *'  # 每天8点定时同步（可选）
+    - cron: '0 8 * * *'
 
 jobs:
   sync-to-gitee:
     runs-on: ubuntu-latest
     steps:
-      - name: 检出完整代码
+      - name: 检出代码
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 拉取所有历史记录，避免分支同步问题
+          fetch-depth: 0
 
-      - name: 🔑 配置Gitee SSH同步（推荐）
+      - name: 配置Gitee远程仓库
         run: |
-          # 1. 生成SSH密钥对（已存在则跳过）
-          ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa -C "gitee-actions@${{ github.repository }}"
+          # 配置Git用户信息
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
           
-          # 2. 配置Git用户（Gitee提交记录显示）
-          git config --global user.name "Gitee Sync Bot"
-          git config --global user.email "actions@${{ github.repository_owner }}.github.io"
+          # 打印变量调试信息
+          echo "===== 变量调试调试调试信息 ====="
+          echo "1. GITEE_USER (从secrets获取): ===${{ secrets.GITEE_USER }}==="
+          echo "2. GITEE_TOKEN (部分隐藏): ===${{ secrets.GITEE_TOKEN && '***' || '未设置' }}==="
+          echo "3. github.repository (完整路径): ===${{ github.repository }}==="
+          echo "========================"
           
-          # 3. 添加Gitee SSH公钥（需提前在Gitee账户配置）
-          echo "-----BEGIN PUBLIC KEY-----
-${{ secrets.GITEE_SSH_PUB_KEY }}
------END PUBLIC KEY-----" >> ~/.ssh/authorized_keys
+          # 关键修复：从 github.repository 中提取仓库名（格式：用户名/仓库名 → 取后半部分）
+          echo "===== 提取仓库名 ====="
+          FULL_REPO="${{ github.repository }}"  # 例如：Enqiliu66/eyeed
+          REPO_NAME=$(echo "$FULL_REPO" | cut -d '/' -f 2)  # 切割后取第二个部分：eyeed
+          echo "完整路径: $FULL_REPO"
+          echo "提取的仓库名: ===$REPO_NAME==="
+          echo "========================"
           
-          # 4. 验证远程仓库
-          git remote add gitee git@gitee.com:${{ secrets.GITEE_USER }}/${{ github.repository_name }}.git
-          git remote -v
+          # 拼接URL并验证
+          echo "===== URL拼接接过程过程 ====="
+          GITEE_USER="${{ secrets.GITEE_USER }}"
+          GITEE_TOKEN="${{ secrets.GITEE_TOKEN }}"
+          FULL_URL="https://$GITEE_USER:$GITEE_TOKEN@gitee.com/$GITEE_USER/$REPO_NAME.git"
+          echo "完整URL: ===$FULL_URL==="
+          echo "========================"
           
-          # 5. 强制同步main分支（覆盖Gitee端修改）
-          git push -f gitee main:main
+          # 配置远程仓库并推送
+          git remote rm gitee 2>/dev/null || true
+          git remote add gitee "$FULL_URL"
+          echo "实际配置的远程URL: ===$(git remote get-url gitee)==="
+          
+          echo "开始推送到Gitee..."
+          git push -f gitee main
         env:
-          GIT_SSH_COMMAND: 'ssh -o StrictHostKeyChecking=no'  # 信任Gitee主机
+          GITEE_USER: ${{ secrets.GITEE_USER }}
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
 
   deploy-gitee-pages:
-    needs: sync-to-gitee  # 依赖同步完成
+    needs: sync-to-gitee
     runs-on: ubuntu-latest
     steps:
-      - name: 🚀 部署Gitee Pages（官方推荐方式）
-        uses: yanglbme/gitee-pages-action@v1.4.2  # 使用稳定版本标签
+      - name: 检出Gitee代码
+        uses: yanglbme/gitee-pages-action@v1.4.2
         with:
-          # 🔍 必需参数（从Secrets获取，避免硬编码）
-          gitee-username: ${{ secrets.GITEE_USER }}  # Gitee用户名
-          gitee-repo: ${{ secrets.GITEE_USER }}/${{ github.repository_name }}  # 仓库路径
-          gitee-token: ${{ secrets.GITEE_TOKEN }}  # Gitee私人令牌（更安全）
-          
-          # 🔧 可选参数（按需配置）
-          branch: main  # 部署的分支（默认main）
-          directory: .  # 部署目录（默认仓库根目录）
-          https: true  # 强制HTTPS
-          commit-message: "自动部署Pages [ci skip]"  # 提交备注
+          # 部署步骤也使用提取的仓库名逻辑
+          gitee-repo: ${{ secrets.GITEE_USER }}/$(echo "${{ github.repository }}" | cut -d '/' -f 2)
+          branch: main
+          token: ${{ secrets.GITEE_TOKEN }}
+
+      - name: 部署Gitee Pages
+        uses: yanglbme/gitee-pages-action@v1.4.2
+        with:
+          gitee-repo: ${{ secrets.GITEE_USER }}/$(echo "${{ github.repository }}" | cut -d '/' -f 2)
+          branch: main
+          commit-message: "自动部署Pages [ci skip]"
+          #刷新
