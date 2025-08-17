@@ -64,11 +64,12 @@ jobs:
           # 部署步骤也使用提取的仓库名逻辑
           gitee-repo: ${{ secrets.GITEE_USER }}/$(echo "${{ github.repository }}" | cut -d '/' -f 2)
           branch: main
-          token: ${{ secrets.GITEE_TOKEN }}
+          gitee-token: ${{ secrets.GITEE_TOKEN }}
 
       - name: 部署Gitee Pages
         uses: yanglbme/gitee-pages-action@v1.4.2
         with:
+          gitee-username: ${{ secrets.GITEE_USER }}
           gitee-repo: ${{ secrets.GITEE_USER }}/$(echo "${{ github.repository }}" | cut -d '/' -f 2)
           branch: main
           commit-message: "自动部署Pages [ci skip]"
