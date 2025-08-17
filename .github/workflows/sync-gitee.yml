@@ -42,4 +42,4 @@ jobs:
         with:
           gitee-repo: ${{ secrets.GITEE_USER }}/${{ github.repository_name }}
           branch: main
-          commit-message: "📦 自动部署Pages [ci skip]"
+          commit-message: "自动部署Pages [ci skip]"
