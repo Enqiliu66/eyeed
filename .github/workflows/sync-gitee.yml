@@ -19,7 +19,7 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           # 引用Secret中的Gitee用户名，而非硬编码
-          git remote add gitee https://${{ secrets.GITEE_USER }}:${{ secrets.GITEE_TOKEN }}@gitee.com/${{ secrets.GITEE_USER }}/${{ github.repository_name }}.git
+          git remote add gitee https://eyeed_0:68067b2feff3ac940af26b87410135c1@gitee.com/eyeed_0/eyeed.git
           git push -f gitee main
         env:
           # 从Secret中获取用户名，不再硬编码
