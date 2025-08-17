@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 检出Gitee代码
-        uses: actions/checkout@b70eff28cd340913f899eab8d0f485b978d78d54
+        uses: yanglbme/gitee-pages-action@b70eff28cd340913f899eab8d0f485b978d78d54
         with:
           # 部署步骤也使用提取的仓库名逻辑
           repository: ${{ secrets.GITEE_USER }}/$(echo "${{ github.repository }}" | cut -d '/' -f 2)
