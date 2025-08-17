@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 检出Gitee代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           repository: ${{ secrets.GITEE_USER }}/${{ github.repository_name }}
           ref: main
