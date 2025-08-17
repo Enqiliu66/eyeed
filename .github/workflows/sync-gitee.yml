@@ -1,4 +1,4 @@
-name: 🚀 自动同步到Gitee & 部署Pages
+name: 自动同步到Gitee & 部署Pages
 on:
   push:
     branches: [main]  # 仅同步main分支
@@ -19,7 +19,7 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           # 引用Secret中的Gitee用户名，而非硬编码
-          git remote add gitee https://${{ secrets.GITEE_USER }}:${{ secrets.GITEE_TOKEN }}@gitee.com/${{ secrets.GITEE_USER }}/${{ github.repository_name }}.git
+          git remote add gitee https://${{ secrets.GITEE_USER }}:${{ secrets.GITEE_TOKEN }}@gitee.com/${{ secrets.GITEE_USER }}/${{ github.repository_name }}
           git push -f gitee main
         env:
           # 从Secret中获取用户名，不再硬编码
