@@ -55,6 +55,8 @@ jobs:
           GITEE_TOKEN="${{ secrets.GITEE_TOKEN }}"
           REPO_NAME="${{ steps.vars.outputs.repo_name }}"
           
+          # 添加调试信息
+          echo "克隆仓库: https://${GITEE_USER}:[MASKED]@gitee.com/${GITEE_USER}/${REPO_NAME}.git"
           git clone https://${GITEE_USER}:${GITEE_TOKEN}@gitee.com/${GITEE_USER}/${REPO_NAME}.git gitee-repo
           cd gitee-repo
           git checkout main
@@ -62,11 +64,14 @@ jobs:
       - name: 部署Gitee Pages
         uses: yanglbme/gitee-pages-action@v1.4.2
         with:
+          # 关键修复1: 使用正确的参数名
           gitee-username: ${{ secrets.GITEE_USER }}
           gitee-password: ${{ secrets.GITEE_TOKEN }}
           gitee-repo: ${{ secrets.GITEE_USER }}/${{ steps.vars.outputs.repo_name }}
           branch: main
           directory: docs
-          commit-message: "自动部署Pages [ci skip]"
+          # 关键修复2: 移除无效的 commit-message 参数
+          # 添加HTTPS参数解决认证问题
+          https: true
         env:
           WORKING_DIR: ./gitee-repo
