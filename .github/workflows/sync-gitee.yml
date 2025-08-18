@@ -66,7 +66,7 @@ jobs:
         with:
           # 关键修复1: 使用正确的参数名
           gitee-username: ${{ secrets.GITEE_USER }}
-          gitee-password: ${{ secrets.GITEE_TOKEN }}
+          gitee-password: ${{ secrets.GITEE_PASSWORD }}
           gitee-repo: ${{ secrets.GITEE_USER }}/${{ steps.vars.outputs.repo_name }}
           branch: main
           directory: docs
