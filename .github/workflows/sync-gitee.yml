@@ -46,13 +46,18 @@ jobs:
           REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2)
           echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
 
-      - name: 检出Gitee代码
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ secrets.GITEE_USER }}/${{ steps.vars.outputs.repo_name }}
-          ref: main
-          token: ${{ secrets.GITEE_TOKEN }}
-          path: gitee-repo
+      - name: 克隆Gitee仓库
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          GITEE_USER="${{ secrets.GITEE_USER }}"
+          GITEE_TOKEN="${{ secrets.GITEE_TOKEN }}"
+          REPO_NAME="${{ steps.vars.outputs.repo_name }}"
+          
+          git clone https://${GITEE_USER}:${GITEE_TOKEN}@gitee.com/${GITEE_USER}/${REPO_NAME}.git gitee-repo
+          cd gitee-repo
+          git checkout main
 
       - name: 部署Gitee Pages
         uses: yanglbme/gitee-pages-action@v1.4.2
