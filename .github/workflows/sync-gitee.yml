@@ -19,9 +19,9 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           
-          # 提取仓库名
+          # 提取仓库名（转为小写确保兼容性）
           FULL_REPO="${{ github.repository }}"
-          REPO_NAME=$(echo "$FULL_REPO" | cut -d '/' -f 2)
+          REPO_NAME=$(echo "$FULL_REPO" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
           
           # 拼接URL并推送
           GITEE_USER="${{ secrets.GITEE_USER }}"
@@ -45,9 +45,30 @@ jobs:
       - name: 设置仓库名称
         id: vars
         run: |
-          REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2)
+          # 提取仓库名并转为小写
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
           echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
-          echo "提取的仓库名: $REPO_NAME"  # 调试输出
+          echo "提取的仓库名: $REPO_NAME"
+
+      - name: 验证Gitee仓库存在性
+        run: |
+          GITEE_USER="${{ secrets.GITEE_USER }}"
+          GITEE_TOKEN="${{ secrets.GITEE_TOKEN }}"
+          REPO_NAME="${{ steps.vars.outputs.repo_name }}"
+          
+          # 检查仓库是否存在
+          API_CHECK_URL="https://gitee.com/api/v5/repos/$GITEE_USER/$REPO_NAME"
+          echo "仓库检查API: $API_CHECK_URL"
+          
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$API_CHECK_URL?access_token=$GITEE_TOKEN")
+          
+          if [ "$RESPONSE" -eq 200 ]; then
+            echo "✅ 仓库存在"
+          else
+            echo "❌ 仓库不存在或无法访问 (HTTP $RESPONSE)"
+            echo "请确认以下仓库已创建: https://gitee.com/$GITEE_USER/$REPO_NAME"
+            exit 1
+          fi
 
       - name: 触发Gitee Pages部署
         run: |
@@ -55,15 +76,17 @@ jobs:
           GITEE_TOKEN="${{ secrets.GITEE_TOKEN }}"
           REPO_NAME="${{ steps.vars.outputs.repo_name }}"
           
+          # 使用正确的API路径（官方文档确认）
+          API_URL="https://gitee.com/api/v5/repos/$GITEE_USER/$REPO_NAME/pages/builds"
+          
           # 调试信息
           echo "===== 部署调试信息 ====="
           echo "Gitee用户名: $GITEE_USER"
           echo "仓库名: $REPO_NAME"
-          API_URL="https://gitee.com/api/v5/repos/${GITEE_USER}/${REPO_NAME}/pages/builds"
           echo "API请求地址: $API_URL"
           
           # 调用API并捕获响应
-          RESPONSE=$(curl -s -w "%{http_code}" -X POST \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             -H "Content-Type: application/json" \
             -d '{"access_token":"'${GITEE_TOKEN}'"}' \
             "$API_URL")
@@ -77,9 +100,16 @@ jobs:
           echo "响应内容: $BODY"
           
           # 检查状态码
-          if [ "$HTTP_CODE" -ne 200 ] && [ "$HTTP_CODE" -ne 201 ]; then
-            echo "❌ 部署触发失败"
+          if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
+            echo "✅ 部署已触发，等待Gitee处理..."
+          elif [ "$HTTP_CODE" -eq 404 ]; then
+            echo "❌ 错误：仓库不存在或API路径错误"
+            echo "请确认："
+            echo "1. 仓库已创建: https://gitee.com/$GITEE_USER/$REPO_NAME"
+            echo "2. Pages服务已手动开启"
+            exit 1
+          else
+            echo "❌ 部署触发失败 (HTTP $HTTP_CODE)"
+            echo "响应详情: $BODY"
             exit 1
           fi
-          
-          echo "✅ 部署已触发，等待Gitee处理..."
