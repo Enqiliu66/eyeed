@@ -45,24 +45,28 @@ jobs:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
 
   deploy-gitee-pages:
-    needs: sync-to-gitee  # 依赖sync-to-gitee成功后才执行
+    needs: sync-to-gitee
     runs-on: ubuntu-latest
     steps:
-      # 第一步：正确检出Gitee代码（使用官方checkout Action）
+      # 第一步：正确检出Gitee代码
       - name: 检出Gitee代码
-        uses: yanglbme/gitee-pages-action@v1.4.2  # 检出代码必须用actions/checkout，而非部署Action
+        uses: actions/checkout@v4
         with:
+          repository: https://gitee.com/${{ secrets.GITEE_USER }}/$(echo "${{ github.repository }}" | cut -d '/' -f 2)
+          ref: main
+          token: ${{ secrets.GITEE_TOKEN }}
+          path: gitee-repo
+
+      # 第二步：部署Gitee Pages
+      - name: 部署Gitee Pages
+        uses: yanglbme/gitee-pages-action@v1.4.2
+        with:
+          gitee-username: ${{ secrets.GITEE_USER }}
+          gitee-password: ${{ secrets.GITEE_TOKEN }}
           gitee-repo: ${{ secrets.GITEE_USER }}/$(echo "${{ github.repository }}" | cut -d '/' -f 2)
           branch: main
-          gitee-password: ${{ secrets.GITEE_TOKEN }}
-
-      # 第二步：部署Gitee Pages（使用正确版本的部署Action）
-      - name: 部署Gitee Pages
-        uses: yanglbme/gitee-pages-action@v1.4.2  # 使用存在的v3版本
-        with:
-          gitee-username: ${{ secrets.GITEE_USER }}  # Gitee用户名
-          gitee-password: ${{ secrets.GITEE_TOKEN }}  # Gitee令牌（需有足够权限）
-          gitee-repo: ${{ secrets.GITEE_USER }}/$(echo "${{ github.repository }}" | cut -d '/' -f 2)  # 仓库路径
-          branch: main  # 部署分支
-          directory: docs  # 部署目录（根据你的实际目录调整，若为根目录可删除此行）
+          directory: docs
           commit-message: "自动部署Pages [ci skip]"
+        env:
+          # 设置工作目录为检出的Gitee仓库
+          WORKING_DIR: ./gitee-repo
