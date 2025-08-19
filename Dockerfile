@@ -1,24 +1,29 @@
-# 基础镜像：轻量级 Nginx（Alpine 版本体积小、速度快）
-FROM nginx:alpine
+# 使用更稳定的 nginx 版本
+FROM nginx:1.25-alpine
 
-# 设置环境变量确保字符编码正确
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
+# 设置时区和字符编码
+ENV TZ=Asia/Shanghai \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
-# 复制项目静态文件到 Nginx 托管目录
-# 静态文件存放在本地根目录的 docs 文件夹，对应容器内 /usr/share/nginx/html
-COPY ./docs /usr/share/nginx/html
+# 创建静态文件目录（Zeabur 要求）
+RUN mkdir -p /app/static
 
-# 关键：修复文件权限（Nginx 运行用户需要读取权限）
-# Alpine 中 Nginx 默认使用 nginx 用户，需确保文件可被该用户读取
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+# 复制静态文件（直接放到 Nginx 根目录）
+COPY . /usr/share/nginx/html
 
-# 复制自定义 Nginx 配置（解决中文乱码、设置默认首页等）
+# 修复权限（仅需保证可读）
+RUN chmod -R a+r /usr/share/nginx/html
+
+# 复制 Nginx 配置（修复端口）
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# 暴露 80 端口（Zeabur 会自动识别并映射）
-EXPOSE 80
+# 暴露 Zeabur 要求的端口（必须）
+EXPOSE 8080
 
-# 启动 Nginx 服务（保持前台运行，避免容器退出）
-CMD ["nginx", "-g", "daemon off;"]
+# 健康检查（必须）
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:8080/ || exit 1
+
+# 启动命令（使用 8080 端口）
+CMD ["nginx", "-g", "daemon off;", "-c", "/etc/nginx/nginx.conf"]
