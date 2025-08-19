@@ -1,0 +1,18 @@
+{
+  "builds": [
+    {
+      "src": "docs/**/*.html",
+      "use": "@zeabur/static",
+      "config": {
+        "outputDirectory": "docs"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/docs/index.html"
+    }
+  ]
+}
+    
