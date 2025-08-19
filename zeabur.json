@@ -1,10 +1,11 @@
 {
+  "framework": null,
   "builds": [
     {
       "src": "docs/**/*",
       "use": "@zeabur/static",
       "config": {
-        "outputDirectory": "docs"
+        "distDir": "docs"
       }
     }
   ],
@@ -12,10 +13,6 @@
     {
       "src": "/(.*)",
       "dest": "/docs/$1"
-    },
-    {
-      "src": "/",
-      "dest": "/docs/index.html"
     }
   ]
 }
