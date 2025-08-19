@@ -1,9 +1,12 @@
 {
   "static": {
-    "directory": "./docs" 
+    "directory": "./docs"
   },
   "build": {
-    "install": "npm install",  
-    "build": "npm run build"   
+    "install": "npm install",
+    "build": "npm run build"
+  },
+  "start": {
+    "command": ""
   }
 }
