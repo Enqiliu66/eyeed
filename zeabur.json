@@ -1,0 +1,5 @@
+{
+  "static": {
+    "directory": "docs"  // 静态文件目录
+  }
+}
