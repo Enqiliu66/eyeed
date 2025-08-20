@@ -21,7 +21,8 @@
       "Pragma": "no-cache",
       "Expires": "0",
       "X-Content-Type-Options": "nosniff"
-    }
+    },
+      "dest": "/docs/sw.js"
   },
     {
       "src": "/api/gh-eye",
@@ -101,3 +102,4 @@
     }
   ]
 }
+
