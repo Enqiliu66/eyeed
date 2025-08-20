@@ -1078,6 +1078,9 @@
         const versionMeta = document.querySelector('meta[name="version"]');
         const version = versionMeta ? versionMeta.getAttribute('content') : '1.0.0';
 
+        // 确保sw.js路径正确
+        const swPath = '/sw.js?v=' + version;
+
         navigator.serviceWorker.register('/sw.js?v=' + version)
           .then(function(registration) {
             console.log('ServiceWorker 注册成功，作用域为: ', registration.scope);
