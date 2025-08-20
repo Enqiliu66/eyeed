@@ -1208,30 +1208,6 @@
       }
     });
 
-    // 在网络状态检测部分添加
-    function updateOnlineStatus() {
-      const offlineAlert = document.getElementById('offline-alert');
-      const onlineAlert = document.getElementById('online-alert');
-
-      if (!navigator.onLine) {
-        offlineAlert.style.display = 'block';
-        setTimeout(() => {
-          offlineAlert.style.display = 'none';
-        }, 3000);
-      } else {
-        onlineAlert.style.display = 'block';
-        setTimeout(() => {
-          onlineAlert.style.display = 'none';
-        }, 3000);
-      }
-    }
-
-    // 添加事件监听器
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-
-    // 初始检查
-    updateOnlineStatus();
 
     /* ==== 摄像头权限检测和错误处理函数 ==== */
     async function checkCameraPermission() {
