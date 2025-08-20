@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="version" content="1.0.2"> <!-- 添加版本号 -->
+  <meta name="version" content="1.0.3"> <!-- 添加版本号 -->
   <title>进食障碍眼动干预程序</title>
 
   <!-- 引入 Google Fonts -->
@@ -90,7 +90,7 @@
       max-height: 100%;
     }
 
-        /* ==== 离线提示样式 ==== */
+    /* ==== 离线提示样式 ==== */
     .offline-alert {
       position: fixed;
       top: 0;
@@ -98,10 +98,18 @@
       right: 0;
       background: #e74c3c;
       color: white;
-      padding: 10px;
+      padding: 12px;
       text-align: center;
       z-index: 10000;
-      font-weight: bold;
+      font-weight: 500;
+      display: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      font-size: 14px;
+    }
+    
+    .offline-icon {
+      margin-right: 8px;
+      font-size: 16px;
     }
 
 
@@ -1077,23 +1085,23 @@
         // 获取当前版本号
         const versionMeta = document.querySelector('meta[name="version"]');
         const version = versionMeta ? versionMeta.getAttribute('content') : '1.0.0';
-
+        
         // 确保sw.js路径正确
         const swPath = '/sw.js?v=' + version;
-
-        navigator.serviceWorker.register('/sw.js?v=' + version)
+        
+        navigator.serviceWorker.register(swPath)
           .then(function(registration) {
             console.log('ServiceWorker 注册成功，作用域为: ', registration.scope);
-
+            
             // 检查更新
             registration.addEventListener('updatefound', () => {
               const newWorker = registration.installing;
               console.log('发现Service Worker更新:', newWorker.state);
-
+              
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   console.log('新Service Worker已安装，准备激活');
-
+                  
                   // 显示更新提示
                   if (confirm('发现新版本，是否立即更新？')) {
                     // 发送消息给Service Worker，要求跳过等待
@@ -1105,8 +1113,10 @@
           })
           .catch(function(error) {
             console.log('ServiceWorker 注册失败: ', error);
+            // 注册失败时继续执行应用
+            initApplication();
           });
-
+          
         // 监听控制变化
         let refreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -1117,6 +1127,40 @@
           }
         });
       });
+    } else {
+      // 浏览器不支持Service Worker，直接初始化应用
+      initApplication();
+    }
+    
+    // 初始化应用
+    function initApplication() {
+      // 添加网络状态检测 - 只检测离线状态
+      function updateOfflineStatus() {
+        const offlineAlert = document.getElementById('offline-alert');
+        
+        // 添加空值检查
+        if (!offlineAlert) {
+          console.warn('离线提示元素未找到');
+          return;
+        }
+        
+        // 只在离线时显示提示
+        if (!navigator.onLine) {
+          offlineAlert.style.display = 'block';
+        } else {
+          offlineAlert.style.display = 'none';
+        }
+      }
+
+      // 只监听离线事件
+      window.addEventListener('offline', updateOfflineStatus);
+
+      // 初始检查 - 确保DOM已加载
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateOfflineStatus);
+      } else {
+        updateOfflineStatus();
+      }
     }
   </script>
 
