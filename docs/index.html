@@ -1,8 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="version" content="1.0.2"> <!-- 添加版本号 -->
   <title>进食障碍眼动干预程序</title>
 
   <!-- 引入 Google Fonts -->
@@ -87,6 +89,21 @@
       justify-content: center;
       max-height: 100%;
     }
+
+        /* ==== 离线提示样式 ==== */
+    .offline-alert {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #e74c3c;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      z-index: 10000;
+      font-weight: bold;
+    }
+
 
     /* ==== 食物展示区 - 2x2网格 ==== */
     .food-container {
@@ -855,6 +872,13 @@
 </head>
 
 <body>
+
+  <!-- 离线状态提示 -->
+  <div class="offline-alert" id="offline-alert" style="display:none;">
+    网络连接已断开，正在使用离线模式
+  </div>
+
+
   <!-- 顶部导航栏 -->
   <div class="header">
     <h1>进食障碍眼动干预实验</h1>
@@ -1045,6 +1069,54 @@
   <!-- 页脚 -->
   <div class="footer">2025 北京师范大学 Eye—ED 项目组联合出品。</div>
 
+<!-- Service Worker 注册 -->
+  <script>
+    // 注册Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        // 获取当前版本号
+        const versionMeta = document.querySelector('meta[name="version"]');
+        const version = versionMeta ? versionMeta.getAttribute('content') : '1.0.0';
+
+        navigator.serviceWorker.register('/sw.js?v=' + version)
+          .then(function(registration) {
+            console.log('ServiceWorker 注册成功，作用域为: ', registration.scope);
+
+            // 检查更新
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              console.log('发现Service Worker更新:', newWorker.state);
+
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('新Service Worker已安装，准备激活');
+
+                  // 显示更新提示
+                  if (confirm('发现新版本，是否立即更新？')) {
+                    // 发送消息给Service Worker，要求跳过等待
+                    newWorker.postMessage({type: 'SKIP_WAITING'});
+                  }
+                }
+              });
+            });
+          })
+          .catch(function(error) {
+            console.log('ServiceWorker 注册失败: ', error);
+          });
+
+        // 监听控制变化
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            console.log('Controller 已变更，刷新页面以应用更新');
+            window.location.reload();
+          }
+        });
+      });
+    }
+  </script>
+
   <script>
     /* ==== 用户信息存储 ==== */
     let userInfo = null;
@@ -1088,6 +1160,31 @@
         this.textContent = '隐藏调试信息';
       }
     });
+
+    // 在网络状态检测部分添加
+    function updateOnlineStatus() {
+      const offlineAlert = document.getElementById('offline-alert');
+      const onlineAlert = document.getElementById('online-alert');
+
+      if (!navigator.onLine) {
+        offlineAlert.style.display = 'block';
+        setTimeout(() => {
+          offlineAlert.style.display = 'none';
+        }, 3000);
+      } else {
+        onlineAlert.style.display = 'block';
+        setTimeout(() => {
+          onlineAlert.style.display = 'none';
+        }, 3000);
+      }
+    }
+
+    // 添加事件监听器
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
+    // 初始检查
+    updateOnlineStatus();
 
     /* ==== 摄像头权限检测和错误处理函数 ==== */
     async function checkCameraPermission() {
