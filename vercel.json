@@ -23,13 +23,62 @@
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Max-Age": "86400",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
         "X-Content-Type-Options": "nosniff"
       }
+    },
+    {
+      "src": "/data/(.*)",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "dest": "docs/data/$1"
+    },
+    {
+      "src": "/images/(.*)",
+      "headers": {
+        "Cache-Control": "public, max-age=1209600, s-maxage=1209600",
+        "Access-Control-Allow-Origin": "*",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "dest": "docs/images/$1"
+    },
+    {
+      "src": "/lib/(.*)",
+      "headers": {
+        "Cache-Control": "public, max-age=2592000, s-maxage=2592000",
+        "Timing-Allow-Origin": "*",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "dest": "docs/lib/$1"
+    },
+    {
+      "src": "/music/(.*)",
+      "headers": {
+        "Cache-Control": "public, max-age=1209600, s-maxage=1209600",
+        "Access-Control-Allow-Origin": "*",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "dest": "docs/music/$1"
+    },
+    {
+      "src": "/(.*\\.(js|css|woff|woff2|ttf|eot))",
+      "headers": {
+        "Cache-Control": "public, max-age=86400, s-maxage=86400",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "dest": "docs/$1"
     },
     {
       "src": "/",
       "dest": "docs/index.html",
       "headers": {
+        "Cache-Control": "public, max-age=3600, s-maxage=3600",
         "X-Content-Type-Options": "nosniff"
       }
     },
@@ -37,6 +86,7 @@
       "src": "/(.*)",
       "dest": "docs/$1",
       "headers": {
+        "Cache-Control": "public, max-age=86400, s-maxage=86400",
         "X-Content-Type-Options": "nosniff"
       }
     }
