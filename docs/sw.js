@@ -1,5 +1,5 @@
 // 定义缓存名称和版本
-const CACHE_NAME = 'eye-ed-cache-v1.0.2'; // 每次更新时修改版本号
+const CACHE_NAME = 'eye-ed-cache-v1.0.3'; // 每次更新时修改版本号
 const IMMUTABLE_CACHE = 'eye-ed-immutable-cache-v1.0.0'; // 不变资源缓存
 
 // 需要缓存的资源列表
@@ -163,4 +163,5 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+
 });
