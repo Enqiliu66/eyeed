@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="version" content="1.0.5"> <!-- 添加版本号 -->
+  <meta name="version" content="1.0.6"> <!-- 添加版本号 -->
   <title>进食障碍眼动干预程序</title>
 
   <!-- 引入 Google Fonts -->
@@ -1105,7 +1105,7 @@
         const version = versionMeta ? versionMeta.getAttribute('content') : '1.0.0';
         
         // 确保sw.js路径正确
-        const swPath = '/sw.js?v=' + version;
+        const swPath = './sw.js?v=' + version;
         
         navigator.serviceWorker.register(swPath)
           .then(function(registration) {
