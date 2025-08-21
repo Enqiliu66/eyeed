@@ -11,6 +11,24 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <!-- jsPsych 相关脚本（本地化版本） -->
   <script src="./webgazer.js"></script>
+  
+ <!-- 设置 Webgazer 模型路径 -->
+  <script>
+    // 可靠的 Webgazer 配置函数
+    function configureWebgazer() {
+      if (typeof webgazer !== 'undefined' && typeof webgazer.setModelPath === 'function') {
+        webgazer.setModelPath('./models/');
+        console.log('Webgazer模型路径已设置为本地路径: ./models/');
+      } else {
+        // 如果 Webgazer 还未加载，等待一段时间再试
+        setTimeout(configureWebgazer, 100);
+      }
+    }
+    
+    // 页面加载完成后开始配置
+    document.addEventListener('DOMContentLoaded', configureWebgazer);
+  </script>
+  
   <script src="./lib/jspsych@8.0.0.js"></script>
   <script src="./lib/plugin-preload@2.0.0.js"></script>
   <script src="./lib/plugin-html-button-response@2.0.0.js"></script>
