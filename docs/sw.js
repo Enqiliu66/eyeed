@@ -1,45 +1,55 @@
 // 定义缓存名称和版本
-const CACHE_NAME = 'eye-ed-cache-v1.0.5'; // 每次更新时修改版本号
+const CACHE_NAME = 'eye-ed-cache-v1.0.6'; // 每次更新时修改版本号
 const IMMUTABLE_CACHE = 'eye-ed-immutable-cache-v1.0.0'; // 不变资源缓存
 
-// 需要缓存的资源列表
+// 需要缓存的资源列表 - 使用相对路径
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/lib/jspsych@8.0.0.js',
-  '/lib/plugin-preload@2.0.0.js',
-  '/lib/plugin-html-button-response@2.0.0.js',
-  '/lib/plugin-html-keyboard-response@2.0.0.js',
-  '/lib/plugin-image-keyboard-response@2.0.0.js',
-  '/lib/plugin-audio-keyboard-response@2.0.0.js',
-  '/lib/plugin-webgazer-init-camera@2.0.0.js',
-  '/lib/plugin-webgazer-calibrate@2.0.0.js',
-  '/lib/plugin-webgazer-validate@2.0.0.js',
-  '/lib/extension-webgazer@1.0.3.js',
-  '/lib/plugin-call-function@1.0.0.js',
-  '/lib/FileSaver.min@2.0.5.js',
-  '/webgazer.js',
-  '/images/',
-  '/music/'
+  './',
+  './index.html',
+  './lib/jspsych@8.0.0.js',
+  './lib/plugin-preload@2.0.0.js',
+  './lib/plugin-html-button-response@2.0.0.js',
+  './lib/plugin-html-keyboard-response@2.0.0.js',
+  './lib/plugin-image-keyboard-response@2.0.0.js',
+  './lib/plugin-audio-keyboard-response@2.0.0.js',
+  './lib/plugin-webgazer-init-camera@2.0.0.js',
+  './lib/plugin-webgazer-calibrate@2.0.0.js',
+  './lib/plugin-webgazer-validate@2.0.0.js',
+  './lib/extension-webgazer@1.0.3.js',
+  './lib/plugin-call-function@1.0.0.js',
+  './lib/FileSaver.min@2.0.5.js',
+  './webgazer.js'
 ];
 
-// 长期缓存的不可变资源
-const immutableResources = [
-  '/lib/',
-  '/images/',
-  '/music/'
-];
+// 预缓存图片和音乐
+const precacheResources = async () => {
+  const cache = await caches.open(CACHE_NAME);
+  
+  // 预缓存低热量图片
+  for (let i = 1; i <= 20; i++) {
+    const idx = ('00' + i).slice(-3);
+    await cache.add(`./images/low/${idx}.jpg`);
+  }
+  
+  // 预缓存高热量图片
+  for (let i = 1; i <= 20; i++) {
+    const idx = ('00' + i).slice(-3);
+    await cache.add(`./images/high/${idx}.jpg`);
+  }
+  
+  // 预缓存音乐
+  await cache.add('./music/calm_music.mp3');
+  await cache.add('./music/positive_sound.mp3');
+};
 
 // 安装事件 - 缓存资源
 self
 .addEventListener('install', event => {
   console
 .log('Service Worker 安装中...');
-
-  // 跳过等待，直接激活新SW
   self
 .skipWaiting();
-
+  
   event
 .waitUntil(
     caches
@@ -47,17 +57,16 @@ self
       .then(cache => {
         console
 .log('缓存核心文件');
-        // 添加错误处理
-        return cache.addAll(urlsToCache).catch(error => {
-          console
-.error('缓存失败:', error);
-          // 即使缓存失败也继续
-          return Promise.resolve();
-        });
+        return cache.addAll(urlsToCache);
       })
       .then(() => {
         console
-.log('资源缓存完成（可能部分失败）');
+.log('开始预缓存图片和音乐资源');
+        return precacheResources();
+      })
+      .then(() => {
+        console
+.log('所有资源已成功缓存');
         return self.skipWaiting();
       })
   );
@@ -178,6 +187,7 @@ self.addEventListener('message', event => {
   }
 
 });
+
 
 
 
