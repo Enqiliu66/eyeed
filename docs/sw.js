@@ -31,20 +31,33 @@ const immutableResources = [
 ];
 
 // 安装事件 - 缓存资源
-self.addEventListener('install', event => {
-  console.log('Service Worker 安装中...');
+self
+.addEventListener('install', event => {
+  console
+.log('Service Worker 安装中...');
 
   // 跳过等待，直接激活新SW
-  self.skipWaiting();
+  self
+.skipWaiting();
 
-  event.waitUntil(
-    caches.open(CACHE_NAME)
+  event
+.waitUntil(
+    caches
+.open(CACHE_NAME)
       .then(cache => {
-        console.log('缓存核心文件');
-        return cache.addAll(urlsToCache);
+        console
+.log('缓存核心文件');
+        // 添加错误处理
+        return cache.addAll(urlsToCache).catch(error => {
+          console
+.error('缓存失败:', error);
+          // 即使缓存失败也继续
+          return Promise.resolve();
+        });
       })
       .then(() => {
-        console.log('所有资源已成功缓存');
+        console
+.log('资源缓存完成（可能部分失败）');
         return self.skipWaiting();
       })
   );
@@ -165,5 +178,6 @@ self.addEventListener('message', event => {
   }
 
 });
+
 
 
