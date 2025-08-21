@@ -1,5 +1,5 @@
 // 定义缓存名称和版本
-const CACHE_NAME = 'eye-ed-cache-v1.0.6'; // 每次更新时修改版本号
+const CACHE_NAME = 'eye-ed-cache-v1.0.7'; // 每次更新时修改版本号
 const IMMUTABLE_CACHE = 'eye-ed-immutable-cache-v1.0.0'; // 不变资源缓存
 
 // 需要缓存的资源列表 - 使用相对路径
@@ -187,6 +187,7 @@ self.addEventListener('message', event => {
   }
 
 });
+
 
 
 
