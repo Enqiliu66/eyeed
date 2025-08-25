@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -11,7 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <!-- jsPsych 相关脚本（本地化版本） -->
   <script src="./webgazer.js"></script>
-  
+  <!-- 在head中添加Chart.js库 -->
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
  <!-- 设置 Webgazer 模型路径 -->
   <script>
     // 可靠的 Webgazer 配置函数
@@ -24,11 +25,11 @@
         setTimeout(configureWebgazer, 100);
       }
     }
-    
+
     // 页面加载完成后开始配置
     document.addEventListener('DOMContentLoaded', configureWebgazer);
   </script>
-  
+
   <script src="./lib/jspsych@8.0.0.js"></script>
   <script src="./lib/plugin-preload@2.0.0.js"></script>
   <script src="./lib/plugin-html-button-response@2.0.0.js"></script>
@@ -124,7 +125,7 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
       font-size: 14px;
     }
-    
+
     .offline-icon {
       margin-right: 8px;
       font-size: 16px;
@@ -894,6 +895,313 @@
       margin-top: 5px;
       font-style: italic;
     }
+
+    /* ==== 反馈面板样式 ==== */
+  .feedback-container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  }
+
+  .feedback-header {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 15px;
+  }
+
+  .feedback-charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 25px;
+  }
+
+  .chart-container {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    height: 300px;
+    position: relative;
+  }
+
+  .feedback-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+
+  .stat-card {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+
+  .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+
+  .feedback-suggestions {
+    background: #e8f4fc;
+    border-left: 4px solid #3498db;
+    padding: 20px;
+    border-radius: 0 10px 10px 0;
+    margin-bottom: 25px;
+  }
+
+  .suggestion-title {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-weight: 600;
+  }
+
+  .suggestion-list {
+    padding-left: 20px;
+  }
+
+  .suggestion-list li {
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  .feedback-encouragement {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
+  .encouragement-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+
+  .encouragement-subtext {
+    font-size: 1rem;
+    opacity: 0.9;
+  }
+
+  /* 响应式调整 */
+  @media (max-width: 900px) {
+    .feedback-charts {
+      grid-template-columns: 1fr;
+    }
+
+    .feedback-stats {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .feedback-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* 反馈面板样式优化 */
+.feedback-container {
+  width: 90%;
+  max-width: 800px;
+  max-height: 60vh; /* 限制最大高度 */
+  overflow-y: auto; /* 添加垂直滚动 */
+  margin: 20px auto;
+  background: white;
+  border-radius: 15px;
+  padding: 20px; /* 减少内边距 */
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.feedback-header {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 12px;
+}
+
+.feedback-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 12px;
+  height: 250px; /* 缩小图表高度 */
+  position: relative;
+}
+
+.feedback-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-value {
+  font-size: 1.6rem; /* 缩小字体 */
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.stat-label {
+  font-size: 0.8rem; /* 缩小字体 */
+  opacity: 0.9;
+}
+
+.feedback-suggestions {
+  background: #e8f4fc;
+  border-left: 4px solid #3498db;
+  padding: 15px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 20px;
+  font-size: 0.9rem; /* 缩小字体 */
+}
+
+.suggestion-title {
+  color: #2c3e50;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.suggestion-list {
+  padding-left: 18px;
+}
+
+.suggestion-list li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.feedback-encouragement {
+  text-align: center;
+  padding: 15px;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.encouragement-text {
+  font-size: 1.1rem; /* 缩小字体 */
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.encouragement-subtext {
+  font-size: 0.9rem; /* 缩小字体 */
+  opacity: 0.9;
+}
+
+/* 响应式调整 */
+@media (max-width: 900px) {
+  .feedback-charts {
+    grid-template-columns: 1fr;
+  }
+
+  .feedback-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .feedback-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .feedback-container {
+    padding: 15px;
+    width: 95%;
+  }
+
+  .chart-container {
+    height: 220px;
+  }
+}
+
+/* 数据报告页面的额外调整 */
+.data-report-container {
+  max-height: 65vh;
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 25px;
+  padding: 15px;
+}
+
+/* 状态消息调整 */
+.status-message {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* 新增：确保只有反馈窗口可滚动 */
+  .feedback-container {
+    max-height: 50vh; /* 减小高度，为按钮留出更多空间 */
+    overflow-y: auto;
+    margin: 20px auto;
+  }
+
+  /* 调整数据报告容器，确保按钮固定 */
+  .data-report-container {
+    max-height: 65vh;
+    overflow: visible; /* 改为visible，不在此容器内滚动 */
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 确保操作按钮固定在底部 */
+  .action-buttons {
+    margin-top: auto; /* 将按钮推到容器底部 */
+    padding-top: 20px;
+    position: sticky;
+    bottom: 0;
+    background: #f5f6f8;
+    z-index: 10;
+  }
   </style>
 </head>
 
@@ -1103,23 +1411,23 @@
         // 获取当前版本号
         const versionMeta = document.querySelector('meta[name="version"]');
         const version = versionMeta ? versionMeta.getAttribute('content') : '1.0.0';
-        
+
         // 确保sw.js路径正确
         const swPath = './sw.js?v=' + version;
-        
+
         navigator.serviceWorker.register(swPath)
           .then(function(registration) {
             console.log('ServiceWorker 注册成功，作用域为: ', registration.scope);
-            
+
             // 检查更新
             registration.addEventListener('updatefound', () => {
               const newWorker = registration.installing;
               console.log('发现Service Worker更新:', newWorker.state);
-              
+
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   console.log('新Service Worker已安装，准备激活');
-                  
+
                   // 显示更新提示
                   if (confirm('发现新版本，是否立即更新？')) {
                     // 发送消息给Service Worker，要求跳过等待
@@ -1134,7 +1442,7 @@
             // 注册失败时继续执行应用
             initApplication();
           });
-          
+
         // 监听控制变化
         let refreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -1149,19 +1457,19 @@
       // 浏览器不支持Service Worker，直接初始化应用
       initApplication();
     }
-    
+
     // 初始化应用
     function initApplication() {
       // 添加网络状态检测 - 只检测离线状态
       function updateOfflineStatus() {
         const offlineAlert = document.getElementById('offline-alert');
-        
+
         // 添加空值检查
         if (!offlineAlert) {
           console.warn('离线提示元素未找到');
           return;
         }
-        
+
         // 只在离线时显示提示
         if (!navigator.onLine) {
           offlineAlert.style.display = 'block';
@@ -2261,7 +2569,7 @@ ${data.keyEvents}
     timeline.push(instructions);
 
     /* ==== 构建 30 个试次 ==== */
-    const trial_count = 30; // 30个试次
+    const trial_count = 3; // 30个试次
     const trials = [];
     const centralFixation = document.getElementById('central-fixation');
     const gazePoint = document.getElementById('gaze-point');
@@ -2617,20 +2925,30 @@ ${data.keyEvents}
             statusMessage.className = "status-message status-success";
             statusMessage.textContent = "数据上传成功！实验天数已更新！";
 
+            setTimeout(() => {
+              generateFeedbackReport(gazeData);
+            }, 100);
+
             // 7. 显示数据报告和操作按钮
             const content = `
               <div class="centered-text">
                 <h2>第 ${userInfo.day} 天实验完成</h2>
                 ${userInfo.day === 30 ? '<p style="color:#27ae60;font-weight:bold;font-size:1.8rem;margin:20px 0;">恭喜您已成功完成30天眼动干预实验！</p>' : ''}
                 <p>详细眼动数据已成功上传至GitHub仓库的data目录</p>
-                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
-                  <button class="copy-button" id="copy-btn">复制报告摘要</button>
-                  <button class="github-button" id="github-btn">查看GitHub记录</button>
-                  <button class="save-button" id="save-btn">保存数据到本地</button>
-                  <button class="exit-button" id="exit-btn">退出实验</button>
-                </div>
+                <!-- 在数据报告部分，将反馈和按钮包装起来 -->
+                <div class="data-report-container">
+                  <!-- 添加反馈容器 -->
+                  <div id="feedback-section"></div>
+                  <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
+                    <button class="copy-button" id="copy-btn">复制报告摘要</button>
+                    <button class="github-button" id="github-btn">查看GitHub记录</button>
+                    <button class="save-button" id="save-btn">保存数据到本地</button>
+                    <button class="exit-button" id="exit-btn">退出实验</button>
+                  </div>
               </div>
             `;
+
+
 
             document.querySelector('.jspsych-content').innerHTML = content;
 
@@ -2695,6 +3013,10 @@ ${data.keyEvents}
           statusMessage.className = "status-message status-error";
           statusMessage.textContent = `数据处理失败: ${error.message}`;
           console.error('完整错误信息:', error);
+          // 反馈报告
+          setTimeout(() => {
+            generateFeedbackReport(gazeData);
+          }, 100);
 
           // 生成CSV数据
           const csvContent = generateCSVData(gazeData);
@@ -2711,11 +3033,16 @@ ${data.keyEvents}
               </ul>
             </div>
 
-            <div style="margin-top: 20px; text-align: center;">
-              <button class="login-button" id="retry-btn">重试上传</button>
-              <button class="github-button" id="save-btn">保存数据到本地</button>
-              <button class="exit-button" id="exit-btn">退出实验</button>
-            </div>
+            <!-- 在数据报告部分，将反馈和按钮包装起来 -->
+            <div class="data-report-container">
+              <!-- 添加反馈容器 -->
+              <div id="feedback-section"></div>
+
+              <div style="margin-top: 20px; text-align: center;">
+                <button class="login-button" id="retry-btn">重试上传</button>
+                <button class="github-button" id="save-btn">保存数据到本地</button>
+                <button class="exit-button" id="exit-btn">退出实验</button>
+              </div>
           `;
 
           // 重试上传按钮
@@ -2756,6 +3083,10 @@ ${data.keyEvents}
         }
       }
     };
+
+          setTimeout(() => {
+            generateFeedbackReport(gazeData);
+          }, 100);
 
     timeline.push(dataProcessingTrial);
 
@@ -2843,6 +3174,278 @@ ${data.keyEvents}
           });
       }
     });
+
+    /* ==== 反馈生成函数 ==== */
+
+// 分析眼动数据并生成反馈报告
+function generateFeedbackReport(gazeData) {
+  // 计算关键指标
+  const metrics = calculateEyeTrackingMetrics(gazeData);
+
+  // 创建反馈容器
+  const feedbackContainer = document.getElementById('feedback-section');
+  if (!feedbackContainer) return;
+
+  // 生成反馈HTML
+  feedbackContainer.innerHTML = createFeedbackHTML(metrics);
+
+  // 渲染图表
+  renderFeedbackCharts(metrics);
+}
+
+// 计算眼动追踪指标
+function calculateEyeTrackingMetrics(gazeData) {
+  let totalFixations = 0;
+  let lowCalorieFixations = 0;
+  let highCalorieFixations = 0;
+  let totalFixationDuration = 0;
+  let fixationDurations = [];
+  let saccadeLengths = [];
+
+  let lastPoint = null;
+
+  // 分析每个试次的数据
+  gazeData.forEach((trialData, trialIndex) => {
+    totalFixations += trialData.length;
+
+    trialData.forEach((point, pointIndex) => {
+      // 计算注视点类型
+      if (point.imageInfo) {
+        if (point.imageInfo.type === 'low') {
+          lowCalorieFixations++;
+        } else if (point.imageInfo.type === 'high') {
+          highCalorieFixations++;
+        }
+      }
+
+      // 累加注视持续时间（跳过第一个点，因为它没有持续时间）
+      if (pointIndex > 0 && point.duration > 0) {
+        totalFixationDuration += point.duration;
+        fixationDurations.push(point.duration);
+      }
+
+      // 计算扫视长度
+      if (lastPoint && pointIndex > 0) {
+        const dx = point.x - lastPoint.x;
+        const dy = point.y - lastPoint.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        saccadeLengths.push(distance);
+      }
+
+      lastPoint = point;
+    });
+  });
+
+  // 计算平均值
+  const avgFixationDuration = fixationDurations.length > 0 ?
+    totalFixationDuration / fixationDurations.length : 0;
+
+  const avgSaccadeLength = saccadeLengths.length > 0 ?
+    saccadeLengths.reduce((a, b) => a + b, 0) / saccadeLengths.length : 0;
+
+  // 计算高低热量食物注视比例
+  const totalFoodFixations = lowCalorieFixations + highCalorieFixations;
+  const lowCalorieRatio = totalFoodFixations > 0 ?
+    (lowCalorieFixations / totalFoodFixations * 100).toFixed(1) : 0;
+  const highCalorieRatio = totalFoodFixations > 0 ?
+    (highCalorieFixations / totalFoodFixations * 100).toFixed(1) : 0;
+
+  return {
+    totalFixations,
+    lowCalorieFixations,
+    highCalorieFixations,
+    lowCalorieRatio,
+    highCalorieRatio,
+    avgFixationDuration: avgFixationDuration.toFixed(1),
+    avgSaccadeLength: avgSaccadeLength.toFixed(1),
+    totalFixationDuration: (totalFixationDuration / 1000).toFixed(1), // 转换为秒
+    fixationDurations,
+    saccadeLengths
+  };
+}
+
+// 创建反馈HTML
+function createFeedbackHTML(metrics) {
+  // 基于数据生成个性化建议
+  const suggestions = generateSuggestions(metrics);
+
+  return `
+    <div class="feedback-container">
+      <div class="feedback-header">
+        <h2>眼动数据分析报告</h2>
+        <p>基于您本次实验的眼动数据生成的个性化反馈</p>
+      </div>
+
+      <div class="feedback-stats">
+        <div class="stat-card">
+          <div class="stat-value">${metrics.totalFixations}</div>
+          <div class="stat-label">总注视点数量</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${metrics.lowCalorieRatio}%</div>
+          <div class="stat-label">低热量食物注视比例</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${metrics.avgFixationDuration}ms</div>
+          <div class="stat-label">平均注视时间</div>
+        </div>
+      </div>
+
+      <div class="feedback-charts">
+        <div class="chart-container">
+          <canvas id="fixationRatioChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="fixationDurationChart"></canvas>
+        </div>
+      </div>
+
+      <div class="feedback-suggestions">
+        <h3 class="suggestion-title">个性化建议</h3>
+        <ul class="suggestion-list">
+          ${suggestions.map(s => `<li>${s}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="feedback-encouragement">
+        <div class="encouragement-text">继续努力，您正在取得进步！</div>
+        <div class="encouragement-subtext">规律训练有助于改善对食物的注意力分配模式</div>
+      </div>
+    </div>
+  `;
+}
+
+// 生成个性化建议
+function generateSuggestions(metrics) {
+  const suggestions = [];
+
+  // 基于低热量食物注视比例的建议
+  if (parseFloat(metrics.lowCalorieRatio) < 40) {
+    suggestions.push("尝试更多地关注低热量食物，这有助于形成健康的饮食偏好");
+  } else if (parseFloat(metrics.lowCalorieRatio) > 60) {
+    suggestions.push("很好！您对低热量食物的关注度较高，继续保持");
+  } else {
+    suggestions.push("您对高低热量食物的注意力分配较为平衡，可以尝试进一步增加对低热量食物的关注");
+  }
+
+  // 基于注视时间的建议
+  if (parseFloat(metrics.avgFixationDuration) < 200) {
+    suggestions.push("您的注视时间较短，可以尝试更长时间地观察食物细节，这有助于建立更全面的食物认知");
+  } else if (parseFloat(metrics.avgFixationDuration) > 400) {
+    suggestions.push("您的注视时间较长，表明您对食物进行了深入观察，这是很好的习惯");
+  }
+
+  // 基于总体数据的鼓励
+  suggestions.push("每天坚持训练，您会逐渐发现对食物的注意力模式正在发生积极变化");
+  suggestions.push("研究表明，持续的眼动训练可以帮助改善饮食行为问题，您正在正确的道路上");
+
+  return suggestions;
+}
+
+// 渲染反馈图表
+function renderFeedbackCharts(metrics) {
+  // 注视比例饼图
+  const ratioCtx = document.getElementById('fixationRatioChart').getContext('2d');
+  new Chart(ratioCtx, {
+    type: 'pie',
+    data: {
+      labels: ['低热量食物', '高热量食物', '其他区域'],
+      datasets: [{
+        data: [
+          metrics.lowCalorieFixations,
+          metrics.highCalorieFixations,
+          metrics.totalFixations - metrics.lowCalorieFixations - metrics.highCalorieFixations
+        ],
+        backgroundColor: [
+          'rgba(46, 204, 113, 0.7)',
+          'rgba(231, 76, 60, 0.7)',
+          'rgba(149, 165, 166, 0.7)'
+        ],
+        borderColor: [
+          'rgba(46, 204, 113, 1)',
+          'rgba(231, 76, 60, 1)',
+          'rgba(149, 165, 166, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: '注视点分布比例'
+        },
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+
+  // 注视持续时间分布图
+  const durationCtx = document.getElementById('fixationDurationChart').getContext('2d');
+
+  // 将注视持续时间分组
+  const durationGroups = {
+    '0-200ms': 0,
+    '200-400ms': 0,
+    '400-600ms': 0,
+    '600ms+': 0
+  };
+
+  metrics.fixationDurations.forEach(duration => {
+    if (duration <= 200) {
+      durationGroups['0-200ms']++;
+    } else if (duration <= 400) {
+      durationGroups['200-400ms']++;
+    } else if (duration <= 600) {
+      durationGroups['400-600ms']++;
+    } else {
+      durationGroups['600ms+']++;
+    }
+  });
+
+  new Chart(durationCtx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(durationGroups),
+      datasets: [{
+        label: '注视点数量',
+        data: Object.values(durationGroups),
+        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+        borderColor: 'rgba(52, 152, 219, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: '注视持续时间分布'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: '注视点数量'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: '注视持续时间'
+          }
+        }
+      }
+    }
+  });
+}
   </script>
 </body>
 </html>
