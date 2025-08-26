@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="version" content="1.0.8"> <!-- 添加版本号 -->
+  <meta name="version" content="1.0.9"> <!-- 添加版本号 -->
   <title>进食障碍眼动干预程序</title>
 
   <!-- 引入 Google Fonts -->
@@ -671,26 +671,29 @@
     .error-panel {
       background: #f8d7da;
       border-left: 4px solid #e74c3c;
-      padding: 15px;
-      margin: 20px 0;
+      padding: 12px; /* 减少内边距 */
+      margin: 8px 0 15px 0; /* 调整外边距，减少底部间距 */
       border-radius: 0 8px 8px 0;
       text-align: left;
+      font-size: 0.85rem; /* 缩小字体 */
     }
 
     .error-panel h4 {
       color: #721c24;
       margin-top: 0;
-      margin-bottom: 10px;
+      margin-bottom: 8px; /* 减少标题底部间距 */
+      font-size: 1rem; /* 缩小标题字体 */
     }
 
     .error-panel ul {
-      padding-left: 20px;
-      margin-bottom: 10px;
+      padding-left: 18px; /* 减少列表缩进 */
+      margin-bottom: 8px; /* 减少列表底部间距 */
     }
 
     .error-panel li {
-      margin-bottom: 5px;
-    }
+      margin-bottom: 4px; /* 减少列表项间距 */
+      line-height: 1.4; /* 调整行高 */
+     }
 
     /* ==== 问卷弹窗样式 ==== */
     .questionnaire-modal {
@@ -1169,26 +1172,26 @@
 
 /* 状态消息调整 */
 .status-message {
-  margin-top: 15px;
-  padding: 12px;
+  margin: 8px 0; /* 减少状态消息的上下边距 */
+  padding: 10px;
   border-radius: 8px;
   text-align: center;
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.9rem; /* 缩小字体 */
 }
 
 /* 新增：确保只有反馈窗口可滚动 */
   .feedback-container {
-    max-height: 50vh; /* 减小高度，为按钮留出更多空间 */
+    max-height: 35vh; /* 减小高度，为按钮留出更多空间 */
     overflow-y: auto;
-    margin: 20px auto;
+    margin: 10px auto;
   }
 
   /* 调整数据报告容器，确保按钮固定 */
   .data-report-container {
     max-height: 65vh;
     overflow: visible; /* 改为visible，不在此容器内滚动 */
-    padding: 15px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
   }
@@ -1405,58 +1408,68 @@
 
 <!-- Service Worker 注册 -->
   <script>
-    // 注册Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        // 获取当前版本号
-        const versionMeta = document.querySelector('meta[name="version"]');
-        const version = versionMeta ? versionMeta.getAttribute('content') : '1.0.0';
+// 注册Service Worker
+  if ('serviceWorker' in navigator) {
+    window
+.addEventListener('load', function() {
+      // 获取当前版本号
+      const versionMeta = document.querySelector('meta[name="version"]');
+      const version = versionMeta ? versionMeta.getAttribute('content') : '1.0.0';
 
-        // 确保sw.js路径正确
-        const swPath = './sw.js?v=' + version;
+      // 确保sw.js路径正确
+      const swPath = './sw.js?v=' + version;
 
-        navigator.serviceWorker.register(swPath)
-          .then(function(registration) {
-            console.log('ServiceWorker 注册成功，作用域为: ', registration.scope);
+      navigator
+.serviceWorker.register(swPath)
+        .then(function(registration) {
+          console
+.log('ServiceWorker 注册成功，作用域为: ', registration.scope);
 
-            // 检查更新
-            registration.addEventListener('updatefound', () => {
-              const newWorker = registration.installing;
-              console.log('发现Service Worker更新:', newWorker.state);
+          // 检查更新 - 移除确认提示，自动更新
+          registration
+.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            console
+.log('发现Service Worker更新:', newWorker.state);
 
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  console.log('新Service Worker已安装，准备激活');
+            newWorker
+.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console
+.log('新Service Worker已安装，自动激活更新');
 
-                  // 显示更新提示
-                  if (confirm('发现新版本，是否立即更新？')) {
-                    // 发送消息给Service Worker，要求跳过等待
-                    newWorker.postMessage({type: 'SKIP_WAITING'});
-                  }
-                }
-              });
+                // 自动发送跳过等待消息，不再询问用户
+                newWorker
+.postMessage({type: 'SKIP_WAITING'});
+              }
             });
-          })
-          .catch(function(error) {
-            console.log('ServiceWorker 注册失败: ', error);
-            // 注册失败时继续执行应用
-            initApplication();
           });
-
-        // 监听控制变化
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (!refreshing) {
-            refreshing = true;
-            console.log('Controller 已变更，刷新页面以应用更新');
-            window.location.reload();
-          }
+        })
+        .catch(function(error) {
+          console
+.log('ServiceWorker 注册失败: ', error);
+          // 注册失败时继续执行应用
+          initApplication();
         });
+
+      // 监听控制变化
+      let refreshing = false;
+      navigator
+.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing
+= true;
+          console
+.log('Controller 已变更，刷新页面以应用更新');
+          window
+.location.reload();
+        }
       });
-    } else {
-      // 浏览器不支持Service Worker，直接初始化应用
-      initApplication();
-    }
+    });
+  } else {
+    // 浏览器不支持Service Worker，直接初始化应用
+    initApplication();
+  }
 
     // 初始化应用
     function initApplication() {
@@ -2139,7 +2152,7 @@ ${data.keyEvents}
                 <label for="subject-id">被试ID</label>
                 <select id="subject-id">
                   <option value="">请选择被试ID</option>
-                  ${Array.from({length: 21}, (_, i) =>
+                  ${Array.from({length: 61}, (_, i) =>
                     `<option value="EYE-${(i+1).toString().padStart(3, '0')}">EYE-${(i+1).toString().padStart(3, '0')}</option>`
                   ).join('')}
                 </select>
@@ -2252,7 +2265,7 @@ ${data.keyEvents}
                 <label for="questionnaire-subject-id">被试ID</label>
                 <select id="questionnaire-subject-id">
                   <option value="">请选择被试ID</option>
-                  ${Array.from({length: 21}, (_, i) =>
+                  ${Array.from({length: 61}, (_, i) =>
                     `<option value="EYE-${(i+1).toString().padStart(3, '0')}">EYE-${(i+1).toString().padStart(3, '0')}</option>`
                   ).join('')}
                 </select>
@@ -3021,30 +3034,44 @@ ${data.keyEvents}
           // 生成CSV数据
           const csvContent = generateCSVData(gazeData);
 
-          // 显示错误恢复选项
-          document.querySelector('.jspsych-content').innerHTML += `
-            <div class="error-panel">
-              <h4>数据上传失败处理方案</h4>
-              <p>系统无法自动上传数据到服务器，请选择以下操作：</p>
-              <ul>
-                <li>检查您的网络连接后重试</li>
-                <li>保存数据到本地并稍后提交给实验负责人</li>
-                <li>退出实验并重新开始</li>
-              </ul>
-            </div>
+// 替换原来的错误处理HTML内容
+document.querySelector('.jspsych-content').innerHTML = `
+  <div class="centered-text">
+    <h2>第${userInfo.day}天实验完成</h2>
+    <div class="status-message status-error" id="status-message">
+      数据处理失败: ${error.message}
+    </div>
+  </div>
 
-            <!-- 在数据报告部分，将反馈和按钮包装起来 -->
-            <div class="data-report-container">
-              <!-- 添加反馈容器 -->
-              <div id="feedback-section"></div>
+  <div class="data-report-container">
+    <div class="error-panel">
+      <h4>数据上传失败处理方案</h4>
+      <p>系统无法自动上传数据到服务器，请选择以下操作：</p>
+      <ul>
+        <li>检查您的网络连接后重试</li>
+        <li>保存数据到本地并稍后提交给实验负责人</li>
+        <li>退出实验并重新开始</li>
+      </ul>
+    </div>
 
-              <div style="margin-top: 20px; text-align: center;">
-                <button class="login-button" id="retry-btn">重试上传</button>
-                <button class="github-button" id="save-btn">保存数据到本地</button>
-                <button class="exit-button" id="exit-btn">退出实验</button>
-              </div>
-          `;
+    <!-- 添加一个间距div -->
+    <div style="margin: 8px 0;"></div>
 
+    <!-- 将反馈容器放在这里，确保它在数据报告容器内 -->
+    <div id="feedback-section"></div>
+  </div>
+
+  <div class="action-buttons">
+    <button class="login-button" id="retry-btn">重试上传</button>
+    <button class="github-button" id="save-btn">保存数据到本地</button>
+    <button class="exit-button" id="exit-btn">退出实验</button>
+  </div>
+`;
+
+// 在失败时也生成反馈报告
+setTimeout(() => {
+  generateFeedbackReport(gazeData);
+}, 100);
           // 重试上传按钮
           document.getElementById('retry-btn').addEventListener('click', async () => {
             const statusMessage = document.getElementById('status-message');
