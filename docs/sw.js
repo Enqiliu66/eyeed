@@ -1,5 +1,5 @@
 // 定义缓存名称和版本
-const CACHE_NAME = 'eye-ed-cache-v1.0.8'; // 每次更新时修改版本号
+const CACHE_NAME = 'eye-ed-cache-v1.0.7'; // 每次更新时修改版本号
 const IMMUTABLE_CACHE = 'eye-ed-immutable-cache-v1.0.0'; // 不变资源缓存
 
 // 需要缓存的资源列表 - 使用相对路径
@@ -43,30 +43,25 @@ const precacheResources = async () => {
 };
 
 // 安装事件 - 缓存资源
-self
-.addEventListener('install', event => {
-  console
-.log('Service Worker 安装中...');
-  self
-.skipWaiting();
+self.addEventListener('install', event => {
+  console.log('Service Worker 安装中...');
   
-  event
-.waitUntil(
-    caches
-.open(CACHE_NAME)
+  // 强制跳过等待期，立即激活
+  self.skipWaiting();
+  
+  event.waitUntil(
+    caches.open(CACHE_NAME)
       .then(cache => {
-        console
-.log('缓存核心文件');
+        console.log('缓存核心文件');
         return cache.addAll(urlsToCache);
       })
       .then(() => {
-        console
-.log('开始预缓存图片和音乐资源');
+        console.log('开始预缓存图片和音乐资源');
         return precacheResources();
       })
       .then(() => {
-        console
-.log('所有资源已成功缓存');
+        console.log('所有资源已成功缓存');
+        // 确保立即激活
         return self.skipWaiting();
       })
   );
@@ -80,7 +75,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          // 删除旧版本的缓存
+          // 删除所有旧版本的缓存（除了不可变缓存）
           if (cacheName !== CACHE_NAME && cacheName !== IMMUTABLE_CACHE) {
             console.log('删除旧缓存:', cacheName);
             return caches.delete(cacheName);
@@ -89,7 +84,7 @@ self.addEventListener('activate', event => {
       );
     }).then(() => {
       console.log('Service Worker 已激活');
-      // 确保SW控制所有客户端
+      // 立即控制所有客户端，确保新版本生效
       return self.clients.claim();
     })
   );
@@ -109,12 +104,10 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // 克隆响应以使用
           return response.clone();
         })
         .catch(error => {
           console.log('API请求失败:', error);
-          // 可以返回一个自定义的错误响应
           return new Response(JSON.stringify({
             error: '网络连接失败',
             message: '请检查您的网络连接'
@@ -130,12 +123,14 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 处理静态资源请求
+  // 处理静态资源请求 - 使用缓存优先策略
   event.respondWith(
     caches.match(event.request)
       .then(response => {
         // 如果在缓存中找到资源，返回缓存版本
         if (response) {
+          // 同时发起网络请求更新缓存
+          fetchAndCache(event.request);
           return response;
         }
 
@@ -171,7 +166,6 @@ self.addEventListener('fetch', event => {
       })
       .catch(() => {
         // 当网络请求和缓存都失败时，可以返回一个离线页面
-        // 这里简单返回一个错误响应
         return new Response('网络连接失败，请检查您的网络设置', {
           status: 404,
           statusText: 'Offline'
@@ -180,16 +174,33 @@ self.addEventListener('fetch', event => {
   );
 });
 
+// 辅助函数：获取并缓存资源
+function fetchAndCache(request) {
+  return fetch(request).then(response => {
+    // 检查是否收到有效响应
+    if (!response || response.status !== 200 || response.type !== 'basic') {
+      return response;
+    }
+
+    // 克隆响应，因为响应也是一次性的
+    const responseToCache = response.clone();
+
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        cache.put(request, responseToCache);
+      });
+
+    return response;
+  });
+}
+
 // 监听消息事件
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+    console.log('收到跳过等待消息，立即激活新版本');
+    self.skipWaiting().then(() => {
+      // 激活后立即控制所有客户端
+      return self.clients.claim();
+    });
   }
-
 });
-
-
-
-
-
-
