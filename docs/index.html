@@ -2265,7 +2265,7 @@ ${data.keyEvents}
                 <label for="questionnaire-subject-id">被试ID</label>
                 <select id="questionnaire-subject-id">
                   <option value="">请选择被试ID</option>
-                  ${Array.from({length: 61}, (_, i) =>
+                  ${Array.from({length: 151}, (_, i) =>
                     `<option value="EYE-${(i+1).toString().padStart(3, '0')}">EYE-${(i+1).toString().padStart(3, '0')}</option>`
                   ).join('')}
                 </select>
