@@ -2738,12 +2738,17 @@ ${data.keyEvents}
           }
 
           const webgazerCallback = function() {
-            if (typeof webgazer === 'undefined') return;
+    if (typeof webgazer === 'undefined') return;
 
-            webgazer.getCurrentPrediction().then(function(pred) {
-              if (!pred) return;
-              const x = pred.x, y = pred.y;
-              const currentTimestamp = Date.now();
+    webgazer.getCurrentPrediction().then(function(pred) {
+      if (!pred) return;
+
+      // 确保pred.x和pred.y是有效数字
+      const x = Number(pred.x);
+      const y = Number(pred.y);
+      if (isNaN(x) || isNaN(y)) return;
+
+      const currentTimestamp = Date.now();
 
               // 计算持续时间
               let duration = 0;
@@ -2779,60 +2784,74 @@ ${data.keyEvents}
               lastTimestamp = currentTimestamp;
 
               let inLow = false;
-              lowSelectors.forEach(selector => {
-                const lowEl = document.querySelector(selector);
-                if (lowEl) {
-                  const rect = lowEl.getBoundingClientRect();
-                  // 转换为文档坐标
-                  const docLeft = rect.left + scrollX;
-                  const docTop = rect.top + scrollY;
-                  const docRight = rect.right + scrollX;
-                  const docBottom = rect.bottom + scrollY;
+      lowSelectors.forEach(selector => {
+        const lowEl = document.querySelector(selector);
+        if (lowEl) {
+          const rect = lowEl.getBoundingClientRect();
+          // 转换为文档坐标
+          const docLeft = rect.left + scrollX;
+          const docTop = rect.top + scrollY;
+          const docRight = rect.right + scrollX;
+          const docBottom = rect.bottom + scrollY;
 
-                  // 添加容差
-                  if (x >= docLeft - 5 && x <= docRight + 5 &&
-                      y >= docTop - 5 && y <= docBottom + 5) {
-                    inLow = true;
-                  }
-                }
-              });
+          // 添加容差
+          if (x >= docLeft - 5 && x <= docRight + 5 &&
+              y >= docTop - 5 && y <= docBottom + 5) {
+            inLow = true;
+          }
+        }
+      });
 
-              if (inLow) {
-                if (!isGazingLow) {
-                  isGazingLow = true;
-                  if (pauseTimeout) {
-                    clearTimeout(pauseTimeout);
-                    pauseTimeout = null;
-                  }
-                  if (audio.paused) {
-                    audio.play().catch(e => console.log('播放失败', e));
-                    musicIndicator.style.display = 'block';
-                    musicIndicator.style.background = 'linear-gradient(90deg, #1abc9c, #16a085)';
-                    musicIndicator.textContent = "音乐播放中";
-                  }
+      // 修复音乐播放/暂停逻辑
+      if (inLow) {
+        if (!isGazingLow) {
+          isGazingLow = true;
+          if (pauseTimeout) {
+            clearTimeout(pauseTimeout);
+            pauseTimeout = null;
+          }
+          if (audio.paused) {
+            // 确保音频已加载
+            if (audio.readyState >= 2) { // 2 = HAVE_ENOUGH_DATA
+              audio.play().catch(e => console.log('播放失败:', e));
+              musicIndicator.style.display = 'block';
+              musicIndicator.style.background = 'linear-gradient(90deg, #1abc9c, #16a085)';
+              musicIndicator.textContent = "音乐播放中";
+            } else {
+              // 如果音频未准备好，等待一下再尝试
+              setTimeout(() => {
+                if (audio.readyState >= 2 && !audio.paused && isGazingLow) {
+                  audio.play().catch(e => console.log('播放失败:', e));
+                  musicIndicator.style.display = 'block';
+                  musicIndicator.style.background = 'linear-gradient(90deg, #1abc9c, #16a085)';
+                  musicIndicator.textContent = "音乐播放中";
                 }
-              } else {
-                if (isGazingLow) {
-                  isGazingLow = false;
+              }, 100);
+            }
+          }
+        }
+      } else {
+        if (isGazingLow) {
+          isGazingLow = false;
 
-                  if (!pauseTimeout) {
-                    pauseTimeout = setTimeout(() => {
-                      if (!isGazingLow && !audio.paused) {
-                        audio.pause();
-                        musicIndicator.textContent = "音乐已暂停";
-                        musicIndicator.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
-                      }
-                      pauseTimeout = null;
-                    }, 500);
-                  }
-                }
+          if (!pauseTimeout) {
+            pauseTimeout = setTimeout(() => {
+              if (!isGazingLow && !audio.paused) {
+                audio.pause();
+                musicIndicator.textContent = "音乐已暂停";
+                musicIndicator.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
               }
-            }).catch(e => console.log('获取眼动预测失败:', e));
-          };
+              pauseTimeout = null;
+            }, 500);
+          }
+        }
+      }
+    }).catch(e => console.log('获取眼动预测失败:', e));
+  };
 
-          // 修改为30Hz采样频率（每33毫秒采样一次）
-          trial.interval = setInterval(webgazerCallback, 33);
-        },
+  // 修改为30Hz采样频率（每33毫秒采样一次）
+  trial.interval = setInterval(webgazerCallback, 33);
+}
         on_finish: function() {
           if (this.interval) {
             clearInterval(this.interval);
