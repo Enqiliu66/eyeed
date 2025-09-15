@@ -2682,64 +2682,64 @@ ${data.keyEvents}
           }
         ],
         on_start: function(trial) {
-  const lowSelectors = [];
-  for (let j = 0; j < 4; j++) {
-    if (allImages[j].type === 'low') {
-      lowSelectors.push(`#food-${j}`);
-    }
-  }
-
-  const musicIndicator = document.getElementById('music-indicator');
-  const audio = window.globalAudio;
-
-  // 记录试次开始时间
-  const trialStartTime = Date.now();
-
-  let isGazingLow = false;
-  let pauseTimeout = null;
-  let lastPosition = null;
-  let lastTimestamp = null;
-
-  // 存储每个图片的位置信息（用于判断注视点）
+  // 清空之前的图片位置信息
   const imageRects = [];
 
   // 获取页面滚动偏移量
   const scrollX = window.pageXOffset;
   const scrollY = window.pageYOffset;
 
-  // 确保音乐在试次开始时是暂停状态
-  if (!audio.paused) {
-    audio.pause();
-  }
-  musicIndicator.style.display = 'none';
+  // 在试次开始时确保音乐暂停
+if (!window.globalAudio.paused) {
+  window.globalAudio.pause();
+}
+document.getElementById('music-indicator').style.display = 'none';
 
-  // 等待图片加载完成后再获取位置信息
-  setTimeout(() => {
-    for (let j = 0; j < 4; j++) {
-      const imgEl = document.getElementById(`food-${j}`);
-      if (imgEl) {
-        const rect = imgEl.getBoundingClientRect();
-        // 将视口坐标转换为文档坐标
-        imageRects.push({
-          id: allImages[j].id,
-          type: allImages[j].type,
-          left: rect.left + scrollX,
-          top: rect.top + scrollY,
-          right: rect.right + scrollX,
-          bottom: rect.bottom + scrollY
-        });
-      }
-    }
-  }, 100);
+// 在播放音乐时
+window.globalAudio.play().catch(e => console.log('播放失败', e));
+const musicIndicator = document.getElementById('music-indicator');
+musicIndicator.style.display = 'block';
+musicIndicator.style.background = 'linear-gradient(90deg, #1abc9c, #16a085)';
+musicIndicator.textContent = "音乐播放中";
 
+// 在暂停音乐时
+window.globalAudio.pause();
+const musicIndicator = document.getElementById('music-indicator');
+musicIndicator.textContent = "音乐已暂停";
+musicIndicator.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
   // 如果摄像头权限被拒绝，跳过眼动跟踪
   if (cameraPermissionDenied) {
-    // 显示静态信息
+    const musicIndicator = document.getElementById('music-indicator');
     musicIndicator.textContent = "眼动追踪已禁用";
     musicIndicator.style.display = 'block';
     musicIndicator.style.background = 'linear-gradient(90deg, #e67e22, #d35400)';
     return;
   }
+
+  // 立即获取图片位置信息（不使用setTimeout）
+  for (let j = 0; j < 4; j++) {
+    const imgEl = document.getElementById(`food-${j}`);
+    if (imgEl) {
+      const rect = imgEl.getBoundingClientRect();
+      // 将视口坐标转换为文档坐标
+      imageRects.push({
+        id: allImages[j].id,
+        type: allImages[j].type,
+        left: rect.left + scrollX,
+        top: rect.top + scrollY,
+        right: rect.right + scrollX,
+        bottom: rect.bottom + scrollY
+      });
+    }
+  }
+
+  let isGazingLow = false;
+  let pauseTimeout = null;
+  let lastPosition = null;
+  let lastTimestamp = null;
+
+  // 记录试次开始时间
+  const trialStartTime = Date.now();
 
   const webgazerCallback = function() {
     if (typeof webgazer === 'undefined') return;
@@ -2757,6 +2757,8 @@ ${data.keyEvents}
 
       // 确定当前点所在的图片（如果有）
       let currentImageInfo = null;
+      let inLow = false;
+
       for (const rect of imageRects) {
         // 添加5px容差范围
         if (x >= rect.left - 5 && x <= rect.right + 5 &&
@@ -2765,6 +2767,11 @@ ${data.keyEvents}
             type: rect.type,
             id: rect.id
           };
+
+          // 检查是否是低热量食物
+          if (rect.type === 'low') {
+            inLow = true;
+          }
           break;
         }
       }
@@ -2776,30 +2783,11 @@ ${data.keyEvents}
         y,
         timestamp,
         duration,
-        imageInfo: currentImageInfo  // 添加图片信息
+        imageInfo: currentImageInfo
       });
 
       lastPosition = {x, y};
       lastTimestamp = currentTimestamp;
-
-      let inLow = false;
-      lowSelectors.forEach(selector => {
-        const lowEl = document.querySelector(selector);
-        if (lowEl) {
-          const rect = lowEl.getBoundingClientRect();
-          // 转换为文档坐标
-          const docLeft = rect.left + scrollX;
-          const docTop = rect.top + scrollY;
-          const docRight = rect.right + scrollX;
-          const docBottom = rect.bottom + scrollY;
-
-          // 添加容差
-          if (x >= docLeft - 5 && x <= docRight + 5 &&
-              y >= docTop - 5 && y <= docBottom + 5) {
-            inLow = true;
-          }
-        }
-      });
 
       if (inLow) {
         // 清除之前的暂停超时
@@ -2811,8 +2799,9 @@ ${data.keyEvents}
         if (!isGazingLow) {
           isGazingLow = true;
           // 立即播放音乐，不等待
-          if (audio.paused) {
-            audio.play().catch(e => console.log('播放失败', e));
+          if (window.globalAudio.paused) {
+            window.globalAudio.play().catch(e => console.log('播放失败', e));
+            const musicIndicator = document.getElementById('music-indicator');
             musicIndicator.style.display = 'block';
             musicIndicator.style.background = 'linear-gradient(90deg, #1abc9c, #16a085)';
             musicIndicator.textContent = "音乐播放中";
@@ -2825,8 +2814,9 @@ ${data.keyEvents}
           // 设置延迟暂停音乐（500ms后）
           if (!pauseTimeout) {
             pauseTimeout = setTimeout(() => {
-              if (!isGazingLow && !audio.paused) {
-                audio.pause();
+              if (!isGazingLow && !window.globalAudio.paused) {
+                window.globalAudio.pause();
+                const musicIndicator = document.getElementById('music-indicator');
                 musicIndicator.textContent = "音乐已暂停";
                 musicIndicator.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)';
               }
