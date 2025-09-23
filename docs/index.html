@@ -2563,21 +2563,13 @@ ${data.keyEvents}
     timeline.push(calibration_instructions);
 
     const calibration = {
-  type: jsPsychWebgazerCalibrate,
-  calibration_points: [
-    [10, 10], [25, 10], [50, 10], [75, 10], [90, 10],
-    [10, 25], [25, 25], [50, 25], [75, 25], [90, 25],
-    [10, 50], [25, 50], [50, 50], [75, 50], [90, 50],
-    [10, 75], [25, 75], [50, 75], [75, 75], [90, 75],
-    [10, 90], [25, 90], [50, 90], [75, 90], [90, 90]
-  ],
-  repetitions_per_point: 3, // 增加重复次数
-  randomize_calibration_order: true,
-  on_finish: function() {
-    // 校准完成后保存模型
-    webgazer.saveData();
-  }
-};
+      type: jsPsychWebgazerCalibrate,
+      calibration_points: [
+        [25, 25], [75, 25], [50, 50], [25, 75], [75, 75]
+      ],
+      repetitions_per_point: 3,
+      randomize_calibration_order: true
+    };
     timeline.push(calibration);
 
     const validation_instructions = {
