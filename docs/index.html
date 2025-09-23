@@ -2870,6 +2870,7 @@ ${data.keyEvents}
               lastPosition = {x, y};
               lastTimestamp = currentTimestamp;
 
+              // 修改：只在注视低热量食物时播放音乐
               let inLow = false;
               lowSelectors.forEach(selector => {
                 const lowEl = document.querySelector(selector);
@@ -2889,6 +2890,7 @@ ${data.keyEvents}
                 }
               });
 
+              // 修改：只在注视低热量食物时播放音乐
               if (inLow) {
                 if (!isGazingLow) {
                   isGazingLow = true;
@@ -2904,6 +2906,7 @@ ${data.keyEvents}
                   }
                 }
               } else {
+                // 修改：注视高热量食物或其他区域时停止音乐
                 if (isGazingLow) {
                   isGazingLow = false;
 
