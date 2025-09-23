@@ -181,16 +181,29 @@
       display: none;
     }
 
-    /* ==== 眼动追踪注视点（已禁用） ==== */
+    /* ==== 眼动追踪注视点（已启用） ==== */
     .gaze-point {
       position: absolute;
-      width: 10px;
-      height: 10px;
-      background-color: red;
+      width: 15px;
+      height: 15px;
+      background-color: rgba(255, 0, 0, 0.7);
       border-radius: 50%;
       pointer-events: none;
       z-index: 9999;
-      display: block;
+      display: none;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+      transition: transform 0.1s ease;
+    }
+
+    /* 新增：注视轨迹点样式 */
+    .gaze-trail {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background-color: rgba(255, 100, 100, 0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
     }
 
     /* ==== 音乐指示条 ==== */
@@ -1227,7 +1240,7 @@
   <!-- 中央固定十字 -->
   <div id="central-fixation" class="central-fixation">+</div>
 
-  <!-- 眼动追踪注视点（已禁用） -->
+  <!-- 眼动追踪注视点（已启用） -->
   <div id="gaze-point" class="gaze-point"></div>
 
   <!-- 验证码弹窗 -->
@@ -1508,6 +1521,7 @@
     let userInfo = null;
     let cameraPermissionDenied = false; // 摄像头权限状态
     let webgazerInitialized = false;   // Webgazer初始化状态
+    let musicLoaded = false; // 音乐加载状态
 
     /* ==== GitHub API 中转配置 ==== */
     const API_BASE_URL = 'https://www.edemi-lab.online/api/gh-eye';
@@ -2124,6 +2138,64 @@ ${data.keyEvents}
     window.globalAudio = new Audio(musicFiles[0]);
     window.globalAudio.loop = true;
 
+    /* ==== 确保音乐加载完成的函数 ==== */
+    function ensureMusicLoaded() {
+      return new Promise((resolve, reject) => {
+        // 如果音乐已经加载完成，直接返回
+        if (musicLoaded) {
+          resolve();
+          return;
+        }
+
+        const audio = window.globalAudio;
+        let loadedCount = 0;
+
+        // 创建所有音频元素的数组
+        const audioElements = musicFiles.map(file => {
+          const audioEl = new Audio(file);
+          return audioEl;
+        });
+
+        // 为每个音频元素添加加载监听器
+        audioElements.forEach(audioEl => {
+          audioEl.addEventListener('canplaythrough', function() {
+            loadedCount++;
+            console.log(`音乐文件加载完成: ${++loadedCount}/${musicFiles.length}`);
+
+            // 当所有音乐文件都加载完成时
+            if (loadedCount === musicFiles.length) {
+              musicLoaded = true;
+              console.log('所有音乐文件已加载完成');
+              resolve();
+            }
+          });
+
+          audioEl.addEventListener('error', function(e) {
+            console.error(`音乐文件加载失败: ${audioEl.src}`, e);
+            // 即使有文件加载失败，也继续实验
+            loadedCount++;
+            if (loadedCount === musicFiles.length) {
+              musicLoaded = true;
+              console.log('音乐文件加载完成（部分文件可能加载失败）');
+              resolve();
+            }
+          });
+
+          // 开始加载音频
+          audioEl.load();
+        });
+
+        // 设置超时，避免无限等待
+        setTimeout(() => {
+          if (!musicLoaded) {
+            console.warn('音乐加载超时，继续实验');
+            musicLoaded = true;
+            resolve();
+          }
+        }, 10000); // 10秒超时
+      });
+    }
+
     /* ==== 用户登录页面 ==== */
     const loginScreen = {
       type: jsPsychHtmlButtonResponse,
@@ -2386,7 +2458,13 @@ ${data.keyEvents}
       type: jsPsychPreload,
       images: imagesToPreload,
       audio: audioToPreload,
-      message: '<div class="centered-text"><p>正在加载资源，请稍候…</p></div>'
+      message: '<div class="centered-text"><p>正在加载资源，请稍候…</p></div>',
+      on_finish: function() {
+        // 预加载完成后，确保音乐完全加载
+        return ensureMusicLoaded().then(() => {
+          console.log('所有资源加载完成，可以开始实验');
+        });
+      }
     };
     timeline.push(preload);
 
@@ -2547,6 +2625,7 @@ ${data.keyEvents}
         <div class="centered-text">
           <p>太好了，校准已完成！</p>
           <p>接下来将开始实验，请注视屏幕中央的十字，然后开始注视食物图片。</p>
+          <p>您的注视点将以红色圆点显示在屏幕上。</p>
         </div>
       `,
       choices: ['继续']
@@ -2572,6 +2651,7 @@ ${data.keyEvents}
             <p>在实验中，屏幕上将呈现4张食物图片，包含2张低热量和2张高热量食物。</p>
             <p>当您注视低热量食物时，将播放愉悦的音乐。</p>
             <p>当您注视高热量食物时，音乐将停止播放。</p>
+            <p>您的注视点将以红色圆点实时显示在屏幕上。</p>
             <p>实验共有 30 个试次，每个试次持续 8 秒，试次间休息 2 秒。</p>
             <p>请按任意键开始实验。</p>
           </div>
@@ -2639,6 +2719,8 @@ ${data.keyEvents}
         },
         on_start: function() {
           centralFixation.style.display = 'block';
+          // 在注视点试次中隐藏注视点
+          gazePoint.style.display = 'none';
         },
         on_finish: function() {
           centralFixation.style.display = 'none';
@@ -2682,7 +2764,6 @@ ${data.keyEvents}
           }
         ],
         on_start: function(trial) {
-          gazePoint.style.display = 'block';
           const lowSelectors = [];
           for (let j = 0; j < 4; j++) {
             if (allImages[j].type === 'low') {
@@ -2707,6 +2788,9 @@ ${data.keyEvents}
           // 获取页面滚动偏移量
           const scrollX = window.pageXOffset;
           const scrollY = window.pageYOffset;
+
+          // 显示注视点
+          gazePoint.style.display = 'block';
 
           // 等待图片加载完成后再获取位置信息
           setTimeout(() => {
@@ -2745,8 +2829,14 @@ ${data.keyEvents}
               if (!pred) return;
               const x = pred.x, y = pred.y;
               const currentTimestamp = Date.now();
-              gazePoint.style.left = (x - 5) + 'px'; // 减去一半宽度以居中
-              gazePoint.style.top = (y - 5) + 'px';  // 减去一半高度以居中
+
+              // 更新注视点位置 - 修改：显示注视点
+              if (gazePoint.style.display !== 'block') {
+                gazePoint.style.display = 'block';
+              }
+              gazePoint.style.left = (x - 7.5) + 'px'; // 居中显示
+              gazePoint.style.top = (y - 7.5) + 'px';
+
               // 计算持续时间
               let duration = 0;
               if (lastTimestamp) {
@@ -2839,6 +2929,7 @@ ${data.keyEvents}
           if (this.interval) {
             clearInterval(this.interval);
           }
+          // 隐藏注视点
           gazePoint.style.display = 'none';
         }
       };
