@@ -190,7 +190,7 @@
       border-radius: 50%;
       pointer-events: none;
       z-index: 9999;
-      display: none !important; /* 确保小红点被隐藏 */
+      display: block;
     }
 
     /* ==== 音乐指示条 ==== */
@@ -2682,6 +2682,7 @@ ${data.keyEvents}
           }
         ],
         on_start: function(trial) {
+          gazePoint.style.display = 'block';
           const lowSelectors = [];
           for (let j = 0; j < 4; j++) {
             if (allImages[j].type === 'low') {
@@ -2744,7 +2745,8 @@ ${data.keyEvents}
               if (!pred) return;
               const x = pred.x, y = pred.y;
               const currentTimestamp = Date.now();
-
+              gazePoint.style.left = (x - 5) + 'px'; // 减去一半宽度以居中
+              gazePoint.style.top = (y - 5) + 'px';  // 减去一半高度以居中
               // 计算持续时间
               let duration = 0;
               if (lastTimestamp) {
